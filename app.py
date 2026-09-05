@@ -126,72 +126,101 @@ def main():
     init_db()
     inyectar_estilos()
 
+    # --- CONTROL DE ACCESO (ADMIN PIN) ---
+    ADMIN_PIN = st.secrets.get("ADMIN_PIN", "2817")
+    if "es_admin" not in st.session_state:
+        st.session_state["es_admin"] = False
+
     raw_productos = obtener_todos_productos()
     datos = procesar_metricas_globales(raw_productos)
 
-    # --- BARRA LATERAL (PC1: Alta Asistida) ---
+    # --- BARRA LATERAL ---
     with st.sidebar:
         st.markdown("## ⚡ BIOFOOD NUTRITION")
         st.caption("Sistema de Bodega & Centro de Distribución")
         st.divider()
 
-        st.markdown("**REGISTRAR SUPLEMENTO**")
-        
-        categoria_sel = st.selectbox("1. Línea de Producto:", list(PRODUCTOS_BIOFOOD.keys()))
-        sugerencias_cat = PRODUCTOS_BIOFOOD[categoria_sel]
-        nombres_sugeridos = [item["nombre"] for item in sugerencias_cat] + ["+ Ingresar otro producto manual..."]
-        
-        sel_nombre = st.selectbox("2. Catálogo Oficial Biofood:", nombres_sugeridos)
-        
-        if sel_nombre == "+ Ingresar otro producto manual...":
-            nombre_final = st.text_input("Nombre comercial del producto:", placeholder="Ej: Glutamina Pure 300g").strip()
-            unidad_default = "Pote"
-            costo_default = 12000
-            venta_default = 19990
-        else:
-            nombre_final = sel_nombre
-            match = next((item for item in sugerencias_cat if item["nombre"] == sel_nombre), None)
-            unidad_default = match["unidad"] if match else "Pote"
-            costo_default = match["costo"] if match else 0
-            venta_default = match["venta"] if match else 0
-
-        opciones_unidad = ["Pote", "Display", "Pack", "Frasco", "Saco/Balde", "Bolsa", "Unidad"]
-        idx_unidad = opciones_unidad.index(unidad_default) if unidad_default in opciones_unidad else 0
-        unidad_medida = st.selectbox("3. Formato de Envase:", opciones_unidad, index=idx_unidad)
-
-        auto_sku = st.checkbox("Generar SKU automático", value=True)
-        if auto_sku:
-            sku_final = generar_sku_sugerido(categoria_sel)
-            st.info(f"SKU sugerido: **{sku_final}**")
-        else:
-            sku_final = st.text_input("Código SKU / Barras:", placeholder="Ej: BF-WHEY-5LB").strip().upper()
-
-        with st.form("form_registro_biofood", clear_on_submit=True):
-            c_costo, c_venta = st.columns(2)
-            precio_costo = c_costo.number_input("Costo Laboratorio ($)", min_value=0, step=1000, value=costo_default)
-            precio_venta = c_venta.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
-            
-            c_stock, c_min = st.columns(2)
-            stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
-            stock_minimo = c_min.number_input("Stock de Seguridad", min_value=0, step=1, value=5)
-
-            btn_guardar = st.form_submit_button("Guardar en Inventario", use_container_width=True, type="primary")
-
-            if btn_guardar:
-                if not nombre_final:
-                    st.error("⚠️ El nombre del producto es obligatorio.")
-                elif not sku_final:
-                    st.error("⚠️ El código SKU es obligatorio.")
+        # Control de desbloqueo por PIN
+        st.markdown("### 🔐 Acceso Administrador")
+        if not st.session_state["es_admin"]:
+            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10)
+            if st.button("Desbloquear Edición", use_container_width=True):
+                if pin_input == ADMIN_PIN:
+                    st.session_state["es_admin"] = True
+                    st.toast("✅ Modo Administrador activado.", icon="🔓")
+                    st.rerun()
                 else:
-                    exito = registrar_producto(
-                        sku_final, nombre_final, categoria_sel, unidad_medida,
-                        int(precio_costo), int(precio_venta), int(stock_actual), int(stock_minimo)
-                    )
-                    if exito:
-                        st.toast(f"✅ '{nombre_final}' guardado con éxito.", icon="⚡")
-                        st.rerun()
+                    st.error("PIN incorrecto.")
+        else:
+            st.success("✅ Modo Administrador Activo")
+            if st.button("Bloquear / Cerrar Sesión", use_container_width=True):
+                st.session_state["es_admin"] = False
+                st.toast("Sesión cerrada.", icon="🔒")
+                st.rerun()
+
+        st.divider()
+
+        # Formulario protegido: Alta de Productos
+        if st.session_state["es_admin"]:
+            st.markdown("**REGISTRAR SUPLEMENTO**")
+            
+            categoria_sel = st.selectbox("1. Línea de Producto:", list(PRODUCTOS_BIOFOOD.keys()))
+            sugerencias_cat = PRODUCTOS_BIOFOOD[categoria_sel]
+            nombres_sugeridos = [item["nombre"] for item in sugerencias_cat] + ["+ Ingresar otro producto manual..."]
+            
+            sel_nombre = st.selectbox("2. Catálogo Oficial Biofood:", nombres_sugeridos)
+            
+            if sel_nombre == "+ Ingresar otro producto manual...":
+                nombre_final = st.text_input("Nombre comercial del producto:", placeholder="Ej: Glutamina Pure 300g").strip()
+                unidad_default = "Pote"
+                costo_default = 12000
+                venta_default = 19990
+            else:
+                nombre_final = sel_nombre
+                match = next((item for item in sugerencias_cat if item["nombre"] == sel_nombre), None)
+                unidad_default = match["unidad"] if match else "Pote"
+                costo_default = match["costo"] if match else 0
+                venta_default = match["venta"] if match else 0
+
+            opciones_unidad = ["Pote", "Display", "Pack", "Frasco", "Saco/Balde", "Bolsa", "Unidad"]
+            idx_unidad = opciones_unidad.index(unidad_default) if unidad_default in opciones_unidad else 0
+            unidad_medida = st.selectbox("3. Formato de Envase:", opciones_unidad, index=idx_unidad)
+
+            auto_sku = st.checkbox("Generar SKU automático", value=True)
+            if auto_sku:
+                sku_final = generar_sku_sugerido(categoria_sel)
+                st.info(f"SKU sugerido: **{sku_final}**")
+            else:
+                sku_final = st.text_input("Código SKU / Barras:", placeholder="Ej: BF-WHEY-5LB").strip().upper()
+
+            with st.form("form_registro_biofood", clear_on_submit=True):
+                c_costo, c_venta = st.columns(2)
+                precio_costo = c_costo.number_input("Costo Laboratorio ($)", min_value=0, step=1000, value=costo_default)
+                precio_venta = c_venta.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
+                
+                c_stock, c_min = st.columns(2)
+                stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
+                stock_minimo = c_min.number_input("Stock de Seguridad", min_value=0, step=1, value=5)
+
+                btn_guardar = st.form_submit_button("Guardar en Inventario", use_container_width=True, type="primary")
+
+                if btn_guardar:
+                    if not nombre_final:
+                        st.error("⚠️ El nombre del producto es obligatorio.")
+                    elif not sku_final:
+                        st.error("⚠️ El código SKU es obligatorio.")
                     else:
-                        st.error("❌ El código SKU o suplemento ya existe.")
+                        exito = registrar_producto(
+                            sku_final, nombre_final, categoria_sel, unidad_medida,
+                            int(precio_costo), int(precio_venta), int(stock_actual), int(stock_minimo)
+                        )
+                        if exito:
+                            st.toast(f"✅ '{nombre_final}' guardado con éxito.", icon="⚡")
+                            st.rerun()
+                        else:
+                            st.error("❌ El código SKU o suplemento ya existe.")
+        else:
+            st.info("👁️ **Modo Consulta Activo**\n\nEl catálogo está en modo solo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
     # --- PANEL PRINCIPAL ---
     st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
@@ -338,7 +367,9 @@ def main():
 
     # 5. Registro Transaccional (PC2)
     with st.expander("⚡ Registrar Movimiento de Bodega (Venta / Recepción de Laboratorio)"):
-        if datos.get("catalogo"):
+        if not st.session_state["es_admin"]:
+            st.info("🔒 Requiere permisos de administrador. Ingresa el PIN en la barra lateral para registrar entradas o salidas.")
+        elif datos.get("catalogo"):
             c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
             opciones = {
                 f"{p['sku']} - {p['nombre']} (Stock actual: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]

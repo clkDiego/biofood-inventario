@@ -8,7 +8,8 @@ from database import (
     registrar_producto,
     obtener_todos_productos,
     actualizar_stock_transaccional,
-    generar_sku_sugerido
+    generar_sku_sugerido,
+    obtener_historial_movimientos
 )
 from rules_engine import procesar_metricas_globales
 
@@ -140,7 +141,7 @@ def main():
         st.caption("Sistema de Bodega & Centro de Distribución")
         st.divider()
 
-        # Control de desbloqueo por PIN
+        # Acceso con PIN
         st.markdown("### 🔐 Acceso Administrador")
         if not st.session_state["es_admin"]:
             pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10)
@@ -160,7 +161,7 @@ def main():
 
         st.divider()
 
-        # Formulario protegido: Alta de Productos
+        # Alta de Productos (Solo Admin)
         if st.session_state["es_admin"]:
             st.markdown("**REGISTRAR SUPLEMENTO**")
             
@@ -391,6 +392,45 @@ def main():
                     st.rerun()
                 else:
                     st.error("Error: Salida rechazada por saldo insuficiente en bodega.")
+
+    st.write("")
+
+    # 6. Historial de Auditoría y Trazabilidad
+    with st.expander("📋 Historial de Auditoría de Movimientos (Últimas transacciones)"):
+        movimientos = obtener_historial_movimientos()
+        if movimientos:
+            df_mov = pd.DataFrame(movimientos)
+            
+            # Formatear fecha y hora
+            df_mov["fecha"] = pd.to_datetime(df_mov["fecha"]).dt.strftime("%d/%m/%Y %H:%M")
+            
+            # Formatear tipo de movimiento
+            df_mov["tipo"] = df_mov["tipo"].apply(
+                lambda x: "🟢 ENTRADA (Recepción)" if x == "ENTRADA" else "🔴 SALIDA (Venta/Despacho)"
+            )
+            
+            # Combinar cantidad y envase
+            df_mov["cantidad_fmt"] = df_mov["cantidad"].astype(str) + " " + df_mov["unidad_medida"]
+            
+            df_mov_vista = df_mov[["fecha", "sku", "nombre", "tipo", "cantidad_fmt"]].rename(columns={
+                "fecha": "FECHA / HORA",
+                "sku": "SKU",
+                "nombre": "PRODUCTO",
+                "tipo": "OPERACIÓN",
+                "cantidad_fmt": "CANTIDAD"
+            })
+            
+            st.dataframe(df_mov_vista, use_container_width=True, hide_index=True)
+            
+            csv_mov = df_mov_vista.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Descargar Reporte de Movimientos (CSV)",
+                data=csv_mov,
+                file_name="historial_movimientos_biofood.csv",
+                mime="text/csv"
+            )
+        else:
+            st.info("Aún no hay registros de movimientos en la base de datos.")
 
 if __name__ == "__main__":
     if st.runtime.exists():

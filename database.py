@@ -126,7 +126,6 @@ def actualizar_stock_transaccional(producto_id, tipo, cantidad):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        # 1. Obtener stock actual
         if DATABASE_URL:
             cursor.execute("SELECT stock_actual FROM productos WHERE id = %s;", (producto_id,))
         else:
@@ -138,7 +137,6 @@ def actualizar_stock_transaccional(producto_id, tipo, cantidad):
             
         stock_actual = resultado[0] if isinstance(resultado, tuple) else resultado["stock_actual"]
 
-        # 2. Validar stock en salidas
         if tipo == "SALIDA":
             if stock_actual < cantidad:
                 return False
@@ -146,7 +144,6 @@ def actualizar_stock_transaccional(producto_id, tipo, cantidad):
         else:
             nuevo_stock = stock_actual + cantidad
 
-        # 3. Actualizar producto y registrar movimiento
         if DATABASE_URL:
             cursor.execute("UPDATE productos SET stock_actual = %s WHERE id = %s;", (nuevo_stock, producto_id))
             cursor.execute("INSERT INTO movimientos (producto_id, tipo, cantidad) VALUES (%s, %s, %s);", (producto_id, tipo, cantidad))
@@ -159,6 +156,24 @@ def actualizar_stock_transaccional(producto_id, tipo, cantidad):
         return True
     except Exception as e:
         print(f"Error en movimiento transaccional: {e}")
+        return False
+    finally:
+        conn.close()
+
+def actualizar_stock_minimo(producto_id, nuevo_minimo):
+    """Actualiza el nivel de stock de seguridad de un suplemento."""
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        if DATABASE_URL:
+            cursor.execute("UPDATE productos SET stock_minimo = %s WHERE id = %s;", (nuevo_minimo, producto_id))
+        else:
+            cursor.execute("UPDATE productos SET stock_minimo = ? WHERE id = ?;", (nuevo_minimo, producto_id))
+        conn.commit()
+        cursor.close()
+        return True
+    except Exception as e:
+        print(f"Error al actualizar stock mínimo: {e}")
         return False
     finally:
         conn.close()

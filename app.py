@@ -8,6 +8,7 @@ from database import (
     registrar_producto,
     obtener_todos_productos,
     actualizar_stock_transaccional,
+    actualizar_stock_minimo,
     generar_sku_sugerido,
     obtener_historial_movimientos
 )
@@ -161,7 +162,7 @@ def main():
 
         st.divider()
 
-        # Alta de Productos (Solo Admin)
+        # Formulario de Alta de Productos (Solo Admin)
         if st.session_state["es_admin"]:
             st.markdown("**REGISTRAR SUPLEMENTO**")
             
@@ -393,26 +394,53 @@ def main():
                 else:
                     st.error("Error: Salida rechazada por saldo insuficiente en bodega.")
 
+    # 6. Modificar Stock Mínimo (Solo Admin)
+    if st.session_state["es_admin"] and datos.get("catalogo"):
+        st.write("")
+        with st.expander("⚙️ Modificar Stock Mínimo / Seguridad (Solo Admin)"):
+            c_prod_min, c_val_min, c_btn_min = st.columns([4, 2, 2])
+            opciones_min = {
+                f"{p['sku']} - {p['nombre']} (Mínimo actual: {p['stock_minimo']} {p.get('unidad_medida', '')})": p
+                for p in datos["catalogo"]
+            }
+            item_elegido_str = c_prod_min.selectbox("Suplemento a modificar:", list(opciones_min.keys()), key="sb_minimo")
+            item_datos = opciones_min[item_elegido_str]
+            
+            nuevo_valor_min = c_val_min.number_input(
+                "Nuevo Mínimo:",
+                min_value=0,
+                step=1,
+                value=int(item_datos["stock_minimo"]),
+                key="num_input_min"
+            )
+            
+            c_btn_min.write("")
+            c_btn_min.write("")
+            if c_btn_min.button("Actualizar Mínimo", use_container_width=True, type="primary"):
+                if actualizar_stock_minimo(item_datos["id"], int(nuevo_valor_min)):
+                    st.toast(f"Stock mínimo actualizado a {nuevo_valor_min}.", icon="✅")
+                    st.success(f"Stock mínimo de '{item_datos['nombre']}' ajustado a {nuevo_valor_min}.")
+                    st.rerun()
+                else:
+                    st.error("Error al actualizar en la base de datos.")
+
     st.write("")
 
-    # 6. Historial de Auditoría y Trazabilidad (Zona Horaria Local)
+    # 7. Historial de Auditoría y Trazabilidad (Zona Horaria Local)
     with st.expander("📋 Historial de Auditoría de Movimientos (Últimas transacciones)"):
         movimientos = obtener_historial_movimientos()
         if movimientos:
             df_mov = pd.DataFrame(movimientos)
             
-            # Ajuste de zona horaria UTC a America/Santiago
             fechas = pd.to_datetime(df_mov["fecha"])
             if fechas.dt.tz is None:
                 fechas = fechas.dt.tz_localize("UTC")
             df_mov["fecha"] = fechas.dt.tz_convert("America/Santiago").dt.strftime("%d/%m/%Y %H:%M")
             
-            # Formatear tipo de movimiento
             df_mov["tipo"] = df_mov["tipo"].apply(
                 lambda x: "🟢 ENTRADA (Recepción)" if x == "ENTRADA" else "🔴 SALIDA (Venta/Despacho)"
             )
             
-            # Combinar cantidad y envase
             df_mov["cantidad_fmt"] = df_mov["cantidad"].astype(str) + " " + df_mov["unidad_medida"]
             
             df_mov_vista = df_mov[["fecha", "sku", "nombre", "tipo", "cantidad_fmt"]].rename(columns={

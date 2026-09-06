@@ -9,41 +9,42 @@ from database import (
     obtener_todos_productos,
     actualizar_stock_transaccional,
     actualizar_stock_minimo,
+    cambiar_estado_producto,
     generar_sku_sugerido,
     obtener_historial_movimientos
 )
 from rules_engine import procesar_metricas_globales
 
-# Catálogo oficial Biofood Nutrition
+# Catálogo oficial Biofood Nutrition (solo con precio venta sugerido)
 PRODUCTOS_BIOFOOD = {
     "Proteínas & Gainers": [
-        {"nombre": "100% Whey Protein 5 Lbs (2.27 kg)", "unidad": "Pote", "costo": 58000, "venta": 90000},
-        {"nombre": "100% Whey Protein 907g (2.0 Lbs)", "unidad": "Pote", "costo": 27000, "venta": 42000},
-        {"nombre": "IsoWhey Isolate 2.2 Lbs", "unidad": "Pote", "costo": 36000, "venta": 55000},
-        {"nombre": "Massive Pro 5 Lbs", "unidad": "Pote", "costo": 52000, "venta": 80000},
-        {"nombre": "Massive Pro 1.0 Kg (2.2 Lbs)", "unidad": "Pote", "costo": 25000, "venta": 39000},
-        {"nombre": "Big Mass Gainer 5 Kgs (11 Lbs)", "unidad": "Saco/Balde", "costo": 48000, "venta": 75000},
-        {"nombre": "Diet Shake 1.5 Kgs (3.3 Lbs)", "unidad": "Pote", "costo": 29000, "venta": 45000}
+        {"nombre": "100% Whey Protein 5 Lbs (2.27 kg)", "unidad": "Pote", "venta": 90000},
+        {"nombre": "100% Whey Protein 907g (2.0 Lbs)", "unidad": "Pote", "venta": 42000},
+        {"nombre": "IsoWhey Isolate 2.2 Lbs", "unidad": "Pote", "venta": 55000},
+        {"nombre": "Massive Pro 5 Lbs", "unidad": "Pote", "venta": 80000},
+        {"nombre": "Massive Pro 1.0 Kg (2.2 Lbs)", "unidad": "Pote", "venta": 39000},
+        {"nombre": "Big Mass Gainer 5 Kgs (11 Lbs)", "unidad": "Saco/Balde", "venta": 75000},
+        {"nombre": "Diet Shake 1.5 Kgs (3.3 Lbs)", "unidad": "Pote", "venta": 45000}
     ],
     "Snacks & Barras Proteicas": [
-        {"nombre": "Barra PRO2.0 Maní (Display 28 barras)", "unidad": "Display", "costo": 44000, "venta": 68000},
-        {"nombre": "Barra PRO2.0 Almendras (Display 28 barras)", "unidad": "Display", "costo": 44000, "venta": 68000},
-        {"nombre": "Barra PRO2.0 Toffee-Coco (Display 28 barras)", "unidad": "Display", "costo": 44000, "venta": 68000},
-        {"nombre": "Barra Turrón Nougat (Display 28 barras)", "unidad": "Display", "costo": 44000, "venta": 68000},
-        {"nombre": "Whey Cook Harina Proteica 2 Lbs", "unidad": "Bolsa", "costo": 27000, "venta": 42000}
+        {"nombre": "Barra PRO2.0 Maní (Display 28 barras)", "unidad": "Display", "venta": 68000},
+        {"nombre": "Barra PRO2.0 Almendras (Display 28 barras)", "unidad": "Display", "venta": 68000},
+        {"nombre": "Barra PRO2.0 Toffee-Coco (Display 28 barras)", "unidad": "Display", "venta": 68000},
+        {"nombre": "Barra Turrón Nougat (Display 28 barras)", "unidad": "Display", "venta": 68000},
+        {"nombre": "Whey Cook Harina Proteica 2 Lbs", "unidad": "Bolsa", "venta": 42000}
     ],
     "Pre-Entreno & Rendimiento": [
-        {"nombre": "Creatine Max Monohidrato 250g", "unidad": "Pote", "costo": 9500, "venta": 15000},
-        {"nombre": "Full Injection Pre-Workout 1.125 Kg", "unidad": "Pote", "costo": 22000, "venta": 35000},
-        {"nombre": "Nitropump Óxido Nítrico (60 cápsulas)", "unidad": "Frasco", "costo": 11000, "venta": 17000},
-        {"nombre": "Extreme Pre Workout Fórmula Avanzada", "unidad": "Pote", "costo": 38000, "venta": 60000}
+        {"nombre": "Creatine Max Monohidrato 250g", "unidad": "Pote", "venta": 15000},
+        {"nombre": "Full Injection Pre-Workout 1.125 Kg", "unidad": "Pote", "venta": 35000},
+        {"nombre": "Nitropump Óxido Nítrico (60 cápsulas)", "unidad": "Frasco", "venta": 17000},
+        {"nombre": "Extreme Pre Workout Fórmula Avanzada", "unidad": "Pote", "venta": 60000}
     ],
     "Bebidas Funcionales & Control de Peso": [
-        {"nombre": "Bad Boss Energy Drink (Pack 24 latas)", "unidad": "Pack", "costo": 23000, "venta": 36000},
-        {"nombre": "BIO2 Thermogenic Frutos Rojos (Pack 24 uds)", "unidad": "Pack", "costo": 27000, "venta": 42000},
-        {"nombre": "BIO2 Thermogenic Limón (Pack 24 uds)", "unidad": "Pack", "costo": 23000, "venta": 36000},
-        {"nombre": "Thermoactive Quemador (60 cápsulas)", "unidad": "Frasco", "costo": 10500, "venta": 17000},
-        {"nombre": "Colágeno Hidrolizado Collagen+ 300g", "unidad": "Pote", "costo": 18000, "venta": 28000}
+        {"nombre": "Bad Boss Energy Drink (Pack 24 latas)", "unidad": "Pack", "venta": 36000},
+        {"nombre": "BIO2 Thermogenic Frutos Rojos (Pack 24 uds)", "unidad": "Pack", "venta": 42000},
+        {"nombre": "BIO2 Thermogenic Limón (Pack 24 uds)", "unidad": "Pack", "venta": 36000},
+        {"nombre": "Thermoactive Quemador (60 cápsulas)", "unidad": "Frasco", "venta": 17000},
+        {"nombre": "Colágeno Hidrolizado Collagen+ 300g", "unidad": "Pote", "venta": 28000}
     ]
 }
 
@@ -133,8 +134,10 @@ def main():
     if "es_admin" not in st.session_state:
         st.session_state["es_admin"] = False
 
-    raw_productos = obtener_todos_productos()
-    datos = procesar_metricas_globales(raw_productos)
+    # Productos activos para catálogo y ventas
+    productos_activos = obtener_todos_productos(solo_activos=True)
+    todos_los_productos = obtener_todos_productos(solo_activos=False)
+    datos = procesar_metricas_globales(productos_activos)
 
     # --- BARRA LATERAL ---
     with st.sidebar:
@@ -162,7 +165,7 @@ def main():
 
         st.divider()
 
-        # Formulario de Alta de Productos (Solo Admin)
+        # Formulario de Alta de Suplementos (Solo Admin)
         if st.session_state["es_admin"]:
             st.markdown("**REGISTRAR SUPLEMENTO**")
             
@@ -175,13 +178,11 @@ def main():
             if sel_nombre == "+ Ingresar otro producto manual...":
                 nombre_final = st.text_input("Nombre comercial del producto:", placeholder="Ej: Glutamina Pure 300g").strip()
                 unidad_default = "Pote"
-                costo_default = 12000
                 venta_default = 19990
             else:
                 nombre_final = sel_nombre
                 match = next((item for item in sugerencias_cat if item["nombre"] == sel_nombre), None)
                 unidad_default = match["unidad"] if match else "Pote"
-                costo_default = match["costo"] if match else 0
                 venta_default = match["venta"] if match else 0
 
             opciones_unidad = ["Pote", "Display", "Pack", "Frasco", "Saco/Balde", "Bolsa", "Unidad"]
@@ -196,9 +197,7 @@ def main():
                 sku_final = st.text_input("Código SKU / Barras:", placeholder="Ej: BF-WHEY-5LB").strip().upper()
 
             with st.form("form_registro_biofood", clear_on_submit=True):
-                c_costo, c_venta = st.columns(2)
-                precio_costo = c_costo.number_input("Costo Laboratorio ($)", min_value=0, step=1000, value=costo_default)
-                precio_venta = c_venta.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
+                precio_venta = st.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
                 
                 c_stock, c_min = st.columns(2)
                 stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
@@ -214,7 +213,7 @@ def main():
                     else:
                         exito = registrar_producto(
                             sku_final, nombre_final, categoria_sel, unidad_medida,
-                            int(precio_costo), int(precio_venta), int(stock_actual), int(stock_minimo)
+                            0, int(precio_venta), int(stock_actual), int(stock_minimo)
                         )
                         if exito:
                             st.toast(f"✅ '{nombre_final}' guardado con éxito.", icon="⚡")
@@ -235,13 +234,16 @@ def main():
         st.markdown(
             f"""
             <div class="critical-banner">
-                🚨 <strong>ALERTA DE REPOSICIÓN:</strong> {datos['productos_reposicion']} suplemento(s) se encuentran bajo el stock de seguridad — Se requiere generar orden de compra a laboratorio.
+                🚨 <strong>ALERTA DE REPOSICIÓN:</strong> {datos['productos_reposicion']} suplemento(s) se encuentran bajo el stock de seguridad — Se requiere reposición de laboratorio.
             </div>
             """,
             unsafe_allow_html=True
         )
 
     # 2. Tarjetas de KPIs Comerciales
+    # Valoración total del inventario a precio de venta
+    valor_total_venta = sum(p.get("stock_actual", 0) * p.get("precio_venta", 0) for p in productos_activos)
+
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         st.markdown(
@@ -255,13 +257,12 @@ def main():
             unsafe_allow_html=True
         )
     with k2:
-        val_costo = datos.get('valor_inventario_costo', 0)
         st.markdown(
             f"""
             <div class="kpi-container">
-                <div class="kpi-title">CAPITAL INMOVILIZADO</div>
-                <div class="kpi-value kpi-val-money">${val_costo:,}</div>
-                <div class="kpi-subtext">costo de existencias</div>
+                <div class="kpi-title">VALOR INVENTARIO (VENTA)</div>
+                <div class="kpi-value kpi-val-money">${valor_total_venta:,}</div>
+                <div class="kpi-subtext">valor comercial disponible</div>
             </div>
             """,
             unsafe_allow_html=True
@@ -292,23 +293,20 @@ def main():
     # 3. Detalle Interactivo de Déficit
     if datos.get("productos_reposicion", 0) > 0:
         st.write("")
-        with st.expander("🚨 **Ver detalle de suplementos que requieren reposición a laboratorio**", expanded=False):
+        with st.expander("🚨 **Ver detalle de suplementos que requieren reposición**", expanded=False):
             items_reposicion = [p for p in datos.get("catalogo", []) if p.get("estado") == "REPOSICIÓN"]
             lista_detalle = []
             for item in items_reposicion:
                 st_act = item.get("stock_actual", 0)
                 st_min = item.get("stock_minimo", 0)
-                p_costo = item.get("precio_costo", 0)
                 deficit = max(0, st_min - st_act)
-                costo_reposicion = deficit * p_costo
                 lista_detalle.append({
                     "SKU": item.get("sku", ""),
                     "SUPLEMENTO / PRODUCTO": item.get("nombre", ""),
                     "LÍNEA": item.get("categoria", ""),
                     "DISPONIBLE": f"{st_act} {item.get('unidad_medida', 'uds')}",
                     "STOCK MÍNIMO": f"{st_min} {item.get('unidad_medida', 'uds')}",
-                    "DÉFICIT": f"+{deficit} {item.get('unidad_medida', 'uds')}",
-                    "INVERSIÓN REPOSICIÓN ($)": f"${costo_reposicion:,}"
+                    "DÉFICIT (A PEDIR)": f"+{deficit} {item.get('unidad_medida', 'uds')}"
                 })
             if lista_detalle:
                 st.dataframe(pd.DataFrame(lista_detalle), use_container_width=True, hide_index=True)
@@ -319,9 +317,9 @@ def main():
     # 4. Catálogo y Trazabilidad
     col_t1, col_t2 = st.columns([3, 1])
     with col_t1:
-        st.markdown("### Catálogo de Existencias y Precios")
+        st.markdown("### Catálogo de Suplementos y Precios")
     with col_t2:
-        st.caption(f"**{len(datos.get('catalogo', []))}** productos registrados")
+        st.caption(f"**{len(datos.get('catalogo', []))}** suplementos activos")
 
     if datos.get("catalogo"):
         df = pd.DataFrame(datos["catalogo"])
@@ -341,15 +339,14 @@ def main():
         if filtro_estado != "Todos":
             df_filtrado = df_filtrado[df_filtrado["estado"] == filtro_estado]
 
-        columnas_deseadas = ["sku", "nombre", "categoria", "unidad_medida", "precio_costo", "precio_venta", "stock_actual", "stock_minimo", "margen_pct", "estado"]
+        columnas_deseadas = ["sku", "nombre", "categoria", "unidad_medida", "precio_venta", "stock_actual", "stock_minimo", "estado"]
         columnas_presentes = [c for c in columnas_deseadas if c in df_filtrado.columns]
         
         df_vista = df_filtrado[columnas_presentes]
         nombres_cabecera = {
             "sku": "SKU", "nombre": "PRODUCTO", "categoria": "LÍNEA", 
-            "unidad_medida": "ENVASE", "precio_costo": "COSTO ($)", 
-            "precio_venta": "VENTA ($)", "stock_actual": "STOCK", 
-            "stock_minimo": "MÍNIMO", "margen_pct": "MARGEN %", "estado": "ESTADO"
+            "unidad_medida": "ENVASE", "precio_venta": "VENTA ($)", 
+            "stock_actual": "STOCK", "stock_minimo": "MÍNIMO", "estado": "ESTADO"
         }
         df_vista = df_vista.rename(columns=nombres_cabecera)
 
@@ -371,11 +368,11 @@ def main():
     with st.expander("⚡ Registrar Movimiento de Bodega (Venta / Recepción de Laboratorio)"):
         if not st.session_state["es_admin"]:
             st.info("🔒 Requiere permisos de administrador. Ingresa el PIN en la barra lateral para registrar entradas o salidas.")
-        elif datos.get("catalogo"):
+        elif productos_activos:
             c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
             opciones = {
-                f"{p['sku']} - {p['nombre']} (Stock actual: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]
-                for p in datos["catalogo"]
+                f"{p['sku']} - {p['nombre']} (Stock: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]
+                for p in productos_activos
             }
             prod_sel = c1.selectbox("Seleccionar Suplemento:", list(opciones.keys()))
             tipo = c2.selectbox(
@@ -395,13 +392,13 @@ def main():
                     st.error("Error: Salida rechazada por saldo insuficiente en bodega.")
 
     # 6. Modificar Stock Mínimo (Solo Admin)
-    if st.session_state["es_admin"] and datos.get("catalogo"):
+    if st.session_state["es_admin"] and productos_activos:
         st.write("")
         with st.expander("⚙️ Modificar Stock Mínimo / Seguridad (Solo Admin)"):
             c_prod_min, c_val_min, c_btn_min = st.columns([4, 2, 2])
             opciones_min = {
                 f"{p['sku']} - {p['nombre']} (Mínimo actual: {p['stock_minimo']} {p.get('unidad_medida', '')})": p
-                for p in datos["catalogo"]
+                for p in productos_activos
             }
             item_elegido_str = c_prod_min.selectbox("Suplemento a modificar:", list(opciones_min.keys()), key="sb_minimo")
             item_datos = opciones_min[item_elegido_str]
@@ -424,14 +421,47 @@ def main():
                 else:
                     st.error("Error al actualizar en la base de datos.")
 
+    # 7. Gestión de Estados: Dar de Baja / Reactivar Suplementos (Solo Admin)
+    if st.session_state["es_admin"] and todos_los_productos:
+        st.write("")
+        with st.expander("🗑️ Dar de Baja / Reactivar Suplemento (Solo Admin)"):
+            st.caption("Dar de baja oculta el producto del catálogo y de las opciones de venta sin borrar su historial de transacciones.")
+            col_sel, col_acc = st.columns([4, 2])
+            
+            opciones_estado = {
+                f"{p['sku']} - {p['nombre']} [{'ACTIVO' if p.get('activo', True) else 'DADO DE BAJA'}]": p
+                for p in todos_los_productos
+            }
+            prod_estado_str = col_sel.selectbox("Seleccionar Suplemento:", list(opciones_estado.keys()), key="sb_baja")
+            prod_estado = opciones_estado[prod_estado_str]
+            esta_activo = prod_estado.get("activo", True)
+
+            col_acc.write("")
+            col_acc.write("")
+            if esta_activo:
+                if col_acc.button("Dar de Baja", use_container_width=True):
+                    if cambiar_estado_producto(prod_estado["id"], False):
+                        st.toast(f"'{prod_estado['nombre']}' dado de baja.", icon="🗑️")
+                        st.rerun()
+                    else:
+                        st.error("Error al cambiar estado.")
+            else:
+                if col_acc.button("Reactivar Suplemento", use_container_width=True, type="primary"):
+                    if cambiar_estado_producto(prod_estado["id"], True):
+                        st.toast(f"'{prod_estado['nombre']}' reactivado exitosamente.", icon="✅")
+                        st.rerun()
+                    else:
+                        st.error("Error al reactivar suplemento.")
+
     st.write("")
 
-    # 7. Historial de Auditoría y Trazabilidad (Zona Horaria Local)
+    # 8. Historial de Auditoría y Trazabilidad
     with st.expander("📋 Historial de Auditoría de Movimientos (Últimas transacciones)"):
         movimientos = obtener_historial_movimientos()
         if movimientos:
             df_mov = pd.DataFrame(movimientos)
             
+            # Conversión a hora local de Chile
             fechas = pd.to_datetime(df_mov["fecha"])
             if fechas.dt.tz is None:
                 fechas = fechas.dt.tz_localize("UTC")

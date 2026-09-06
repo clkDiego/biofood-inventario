@@ -395,14 +395,17 @@ def main():
 
     st.write("")
 
-    # 6. Historial de Auditoría y Trazabilidad
+    # 6. Historial de Auditoría y Trazabilidad (Zona Horaria Local)
     with st.expander("📋 Historial de Auditoría de Movimientos (Últimas transacciones)"):
         movimientos = obtener_historial_movimientos()
         if movimientos:
             df_mov = pd.DataFrame(movimientos)
             
-            # Formatear fecha y hora
-            df_mov["fecha"] = pd.to_datetime(df_mov["fecha"]).dt.strftime("%d/%m/%Y %H:%M")
+            # Ajuste de zona horaria UTC a America/Santiago
+            fechas = pd.to_datetime(df_mov["fecha"])
+            if fechas.dt.tz is None:
+                fechas = fechas.dt.tz_localize("UTC")
+            df_mov["fecha"] = fechas.dt.tz_convert("America/Santiago").dt.strftime("%d/%m/%Y %H:%M")
             
             # Formatear tipo de movimiento
             df_mov["tipo"] = df_mov["tipo"].apply(

@@ -19,7 +19,6 @@ def init_db():
     try:
         cursor = conn.cursor()
         if DATABASE_URL:
-            # PostgreSQL (Supabase)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS productos (
                     id SERIAL PRIMARY KEY,
@@ -34,7 +33,6 @@ def init_db():
                     activo BOOLEAN NOT NULL DEFAULT TRUE
                 );
             """)
-            # Migración: asegurar que la columna activo exista
             cursor.execute("ALTER TABLE productos ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT TRUE;")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS movimientos (
@@ -46,7 +44,6 @@ def init_db():
                 );
             """)
         else:
-            # SQLite (Local)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS productos (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,7 +143,6 @@ def obtener_todos_productos(solo_activos=False):
         conn.close()
 
 def cambiar_estado_producto(producto_id, nuevo_estado):
-    """Activa o da de baja un suplemento sin borrar su historial."""
     conn = get_connection()
     try:
         cursor = conn.cursor()
@@ -220,10 +216,11 @@ def actualizar_stock_minimo(producto_id, nuevo_minimo):
 
 def generar_sku_sugerido(categoria):
     prefijos = {
-        "Proteínas & Gainers": "BF-PROT",
+        "Polvos": "BF-POLV",
+        "Cápsulas": "BF-CAPS",
         "Snacks & Barras Proteicas": "BF-BAR",
         "Pre-Entreno & Rendimiento": "BF-PRE",
-        "Bebidas Funcionales & Control de Peso": "BF-FUNC"
+        "Bebidas": "BF-BEB"
     }
     pref = prefijos.get(categoria, "BF-ITEM")
     productos = obtener_todos_productos()

@@ -17,7 +17,7 @@ from rules_engine import procesar_metricas_globales
 
 # Catálogo oficial Biofood Nutrition
 PRODUCTOS_BIOFOOD = {
-    "Proteínas & Gainers": [
+    "Polvos": [
         {"nombre": "100% Whey Protein 5 Lbs (2.27 kg)", "unidad": "Pote", "venta": 90000},
         {"nombre": "100% Whey Protein 907g (2.0 Lbs)", "unidad": "Pote", "venta": 42000},
         {"nombre": "IsoWhey Isolate 2.2 Lbs", "unidad": "Pote", "venta": 55000},
@@ -25,6 +25,15 @@ PRODUCTOS_BIOFOOD = {
         {"nombre": "Massive Pro 1.0 Kg (2.2 Lbs)", "unidad": "Pote", "venta": 39000},
         {"nombre": "Big Mass Gainer 5 Kgs (11 Lbs)", "unidad": "Saco/Balde", "venta": 75000},
         {"nombre": "Diet Shake 1.5 Kgs (3.3 Lbs)", "unidad": "Pote", "venta": 45000}
+    ],
+    "Cápsulas": [
+        {"nombre": "ZMA (90 Cápsulas)", "unidad": "Frasco", "venta": 15000},
+        {"nombre": "Reductor Plus (60 Cápsulas)", "unidad": "Frasco", "venta": 15000},
+        {"nombre": "Reductor Plus (120 Cápsulas)", "unidad": "Frasco", "venta": 27000},
+        {"nombre": "Nitro Pump (60 Cápsulas)", "unidad": "Frasco", "venta": 17000},
+        {"nombre": "Nitro Pump (120 Cápsulas)", "unidad": "Frasco", "venta": 30000},
+        {"nombre": "Thermo Active (60 Cápsulas)", "unidad": "Frasco", "venta": 17000},
+        {"nombre": "Thermo Active (120 Cápsulas)", "unidad": "Frasco", "venta": 30000}
     ],
     "Snacks & Barras Proteicas": [
         {"nombre": "Barra PRO2.0 Maní (Display 28 barras)", "unidad": "Display", "venta": 68000},
@@ -36,14 +45,12 @@ PRODUCTOS_BIOFOOD = {
     "Pre-Entreno & Rendimiento": [
         {"nombre": "Creatine Max Monohidrato 250g", "unidad": "Pote", "venta": 15000},
         {"nombre": "Full Injection Pre-Workout 1.125 Kg", "unidad": "Pote", "venta": 35000},
-        {"nombre": "Nitropump Óxido Nítrico (60 cápsulas)", "unidad": "Frasco", "venta": 17000},
         {"nombre": "Extreme Pre Workout Fórmula Avanzada", "unidad": "Pote", "venta": 60000}
     ],
-    "Bebidas Funcionales & Control de Peso": [
-        {"nombre": "Bad Boss Energy Drink (Pack 24 latas)", "unidad": "Pack", "venta": 36000},
+    "Bebidas": [
+        {"nombre": "Bad Boss Energy Drink (Pack 24 Uds)", "unidad": "Pack", "venta": 36000},
         {"nombre": "BIO2 Thermogenic Frutos Rojos (Pack 24 uds)", "unidad": "Pack", "venta": 42000},
         {"nombre": "BIO2 Thermogenic Limón (Pack 24 uds)", "unidad": "Pack", "venta": 36000},
-        {"nombre": "Thermoactive Quemador (60 cápsulas)", "unidad": "Frasco", "venta": 17000},
         {"nombre": "Colágeno Hidrolizado Collagen+ 300g", "unidad": "Pote", "venta": 28000}
     ]
 }
@@ -61,7 +68,6 @@ def inyectar_estilos():
                 background-color: #0B0F17;
             }
 
-            /* Banner Alerta Crítica */
             .critical-banner {
                 background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
                 border-left: 4px solid #EF4444;
@@ -74,7 +80,6 @@ def inyectar_estilos():
                 border: 1px solid rgba(239, 68, 68, 0.25);
             }
 
-            /* Tarjetas KPIs */
             .kpi-container {
                 background: #141C2E;
                 border: 1px solid #1E293B;
@@ -110,7 +115,6 @@ def inyectar_estilos():
             .kpi-val-ok { color: #10B981; }
             .kpi-val-alert { color: #F97316; }
 
-            /* Botones de acción */
             div.stButton > button:first-child {
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
                 color: #FFFFFF;
@@ -187,7 +191,7 @@ def main():
             
             if sel_nombre == "Ingresar otro suplemento manual...":
                 nombre_final = st.text_input("Nombre comercial:", placeholder="Ej: Creatina Micronizada 300g").strip()
-                unidad_default = "Pote"
+                unidad_default = "Frasco" if categoria_sel == "Cápsulas" else "Pote"
                 venta_default = 19990
             else:
                 nombre_final = sel_nombre
@@ -195,7 +199,8 @@ def main():
                 unidad_default = match["unidad"] if match else "Pote"
                 venta_default = match["venta"] if match else 0
 
-            opciones_unidad = ["Pote", "Display", "Pack", "Frasco", "Saco/Balde", "Bolsa", "Unidad"]
+            # Opciones de envase completas
+            opciones_unidad = ["Frasco", "Pote", "Display", "Caja", "Pack", "Saco/Balde", "Bolsa", "Unidad"]
             idx_unidad = opciones_unidad.index(unidad_default) if unidad_default in opciones_unidad else 0
             unidad_medida = st.selectbox("3. Formato Envase:", opciones_unidad, index=idx_unidad)
 
@@ -204,14 +209,14 @@ def main():
                 sku_final = generar_sku_sugerido(categoria_sel)
                 st.info(f"SKU sugerido: **{sku_final}**")
             else:
-                sku_final = st.text_input("Código SKU:", placeholder="Ej: BF-CREA-300").strip().upper()
+                sku_final = st.text_input("Código SKU:", placeholder="Ej: BF-CAPS-001").strip().upper()
 
             with st.form("form_registro_biofood", clear_on_submit=True):
                 precio_venta = st.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
                 
                 c_stock, c_min = st.columns(2)
                 stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
-                stock_minimo = c_min.number_input("Stock Mínimo", min_value=0, step=1, value=5)
+                stock_minimo = c_min.number_input("Stock Mínimo", min_value=0, step=1, value=3)
 
                 btn_guardar = st.form_submit_button("Guardar en Inventario", use_container_width=True, type="primary")
 
@@ -335,7 +340,7 @@ def main():
 
         filtro_col1, filtro_col2 = st.columns([2, 2])
         with filtro_col1:
-            busqueda = st.text_input("Buscar por suplemento o SKU:", placeholder="Ej: Whey, Creatina, BF-PRE-001").strip().lower()
+            busqueda = st.text_input("Buscar por suplemento o SKU:", placeholder="Ej: Whey, Creatina, BF-POLV-001").strip().lower()
         with filtro_col2:
             filtro_estado = st.selectbox("Filtrar por Condición:", ["Todos", "OK", "REPOSICIÓN"])
 

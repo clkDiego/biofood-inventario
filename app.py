@@ -9,6 +9,8 @@ from database import (
     obtener_todos_productos,
     actualizar_stock_transaccional,
     actualizar_stock_minimo,
+    actualizar_producto_datos,
+    actualizar_producto_por_sku,
     cambiar_estado_producto,
     generar_sku_sugerido,
     obtener_historial_movimientos
@@ -199,7 +201,6 @@ def main():
                 unidad_default = match["unidad"] if match else "Pote"
                 venta_default = match["venta"] if match else 0
 
-            # Opciones de envase completas
             opciones_unidad = ["Frasco", "Pote", "Display", "Caja", "Pack", "Saco/Balde", "Bolsa", "Unidad"]
             idx_unidad = opciones_unidad.index(unidad_default) if unidad_default in opciones_unidad else 0
             unidad_medida = st.selectbox("3. Formato Envase:", opciones_unidad, index=idx_unidad)
@@ -328,7 +329,7 @@ def main():
     st.write("")
     st.divider()
 
-    # 4. Catálogo de Existencias
+    # 4. Catálogo de Existencias y Edición
     col_t1, col_t2 = st.columns([3, 1])
     with col_t1:
         st.markdown("### Catálogo de Suplementos y Existencias")
@@ -364,7 +365,47 @@ def main():
         }
         df_vista = df_vista.rename(columns=nombres_cabecera)
 
-        st.dataframe(df_vista, use_container_width=True, hide_index=True)
+        # Si es Admin, la tabla permite editar celdas directamente
+        if st.session_state["es_admin"]:
+            st.caption("Modo Administrador: Puedes hacer doble clic sobre 'PRODUCTO' o 'VENTA ($)' directamente en la tabla para modificar valores.")
+            
+            df_editado = st.data_editor(
+                df_vista,
+                use_container_width=True,
+                hide_index=True,
+                disabled=["SKU", "LÍNEA", "ENVASE", "STOCK", "MÍNIMO", "ESTADO"],
+                key="editor_catalogo"
+            )
+
+            # Detección de cambios entre la tabla original y la editada
+            mapa_original = {row["SKU"]: (str(row["PRODUCTO"]).strip(), int(row["VENTA ($)"])) for _, row in df_vista.iterrows()}
+            cambios_detectados = []
+            for _, row in df_editado.iterrows():
+                sku_actual = row["SKU"]
+                orig_nom, orig_pre = mapa_original.get(sku_actual, (None, None))
+                if orig_nom is not None:
+                    nom_edit = str(row["PRODUCTO"]).strip()
+                    pre_edit = int(row["VENTA ($)"])
+                    if nom_edit != orig_nom or pre_edit != orig_pre:
+                        cambios_detectados.append({
+                            "sku": sku_actual,
+                            "nombre": nom_edit,
+                            "precio_venta": pre_edit
+                        })
+
+            if cambios_detectados:
+                if st.button(f"Guardar Cambios de la Tabla ({len(cambios_detectados)} modificados)", type="primary"):
+                    errores = 0
+                    for item in cambios_detectados:
+                        if not actualizar_producto_por_sku(item["sku"], item["nombre"], item["precio_venta"]):
+                            errores += 1
+                    if errores == 0:
+                        st.toast("Cambios guardados correctamente en el inventario.")
+                        st.rerun()
+                    else:
+                        st.error("Hubo un error al guardar algunos cambios en la base de datos.")
+        else:
+            st.dataframe(df_vista, use_container_width=True, hide_index=True)
 
         csv_data = df_vista.to_csv(index=False).encode('utf-8')
         st.download_button(
@@ -376,9 +417,36 @@ def main():
     else:
         st.info("No hay existencias registradas. Ingresa los primeros suplementos desde el panel izquierdo.")
 
+    # 5. Apartado para Modificar Nombre o Precio por Formulario Individual (Solo Admin)
+    if st.session_state["es_admin"] and productos_activos:
+        st.write("")
+        with st.expander("Modificar Nombre o Precio de un Suplemento (Solo Admin)"):
+            c_prod_ed, c_nom_ed, c_pre_ed, c_btn_ed = st.columns([4, 3, 2, 2])
+            opciones_ed = {
+                f"{p['sku']} - {p['nombre']} (${p['precio_venta']:,})": p
+                for p in productos_activos
+            }
+            item_ed_str = c_prod_ed.selectbox("Suplemento a editar:", list(opciones_ed.keys()), key="sb_edicion_prod")
+            item_ed_datos = opciones_ed[item_ed_str]
+
+            nuevo_nom_ed = c_nom_ed.text_input("Nombre Comercial:", value=item_ed_datos["nombre"], key="input_nom_ed")
+            nuevo_pre_ed = c_pre_ed.number_input("Precio Venta ($):", min_value=0, step=1000, value=int(item_ed_datos["precio_venta"]), key="input_pre_ed")
+
+            c_btn_ed.write("")
+            c_btn_ed.write("")
+            if c_btn_ed.button("Guardar Cambios", use_container_width=True, type="primary"):
+                if nuevo_nom_ed.strip():
+                    if actualizar_producto_datos(item_ed_datos["id"], nuevo_nom_ed.strip(), int(nuevo_pre_ed)):
+                        st.toast("Suplemento actualizado con éxito.")
+                        st.rerun()
+                    else:
+                        st.error("Error al actualizar en la base de datos.")
+                else:
+                    st.error("El nombre no puede estar vacío.")
+
     st.write("")
 
-    # 5. Registro Transaccional
+    # 6. Registro Transaccional
     with st.expander("Registrar Movimiento de Bodega (Venta / Recepción)", expanded=False):
         if not st.session_state["es_admin"]:
             st.info("Requiere permisos de administrador. Ingresa el PIN en la barra lateral para registrar movimientos.")
@@ -415,7 +483,7 @@ def main():
                     else:
                         st.error("Error: Salida rechazada por saldo insuficiente en bodega.")
 
-    # 6. Modificar Stock Mínimo
+    # 7. Modificar Stock Mínimo
     if st.session_state["es_admin"] and productos_activos:
         st.write("")
         with st.expander("Modificar Stock Mínimo / Seguridad (Solo Admin)"):
@@ -444,7 +512,7 @@ def main():
                 else:
                     st.error("Error al actualizar en la base de datos.")
 
-    # 7. Dar de Baja / Reactivar
+    # 8. Dar de Baja / Reactivar
     if st.session_state["es_admin"] and todos_los_productos:
         st.write("")
         with st.expander("Dar de Baja / Reactivar Suplemento (Solo Admin)"):
@@ -478,7 +546,7 @@ def main():
 
     st.write("")
 
-    # 8. Historial de Auditoría
+    # 9. Historial de Auditoría
     with st.expander("Historial de Auditoría de Movimientos (Últimas transacciones)"):
         movimientos = obtener_historial_movimientos()
         if movimientos:

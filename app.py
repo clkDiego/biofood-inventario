@@ -75,18 +75,33 @@ def inyectar_estilos():
                 font-family: 'Plus Jakarta Sans', sans-serif;
             }
 
-            .stApp {
-                background-color: #0B0F17;
+            /* Fondo general y barra lateral blindados */
+            .stApp, [data-testid="stAppViewContainer"] {
+                background-color: #0B0F17 !important;
+            }
+
+            section[data-testid="stSidebar"], [data-testid="stSidebarContent"] {
+                background-color: #111827 !important;
+                border-right: 1px solid #1F2937 !important;
+            }
+
+            header[data-testid="stHeader"] {
+                background-color: transparent !important;
+            }
+
+            /* Forzar textos claros en toda la pantalla */
+            h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, [data-testid="stWidgetLabel"] p {
+                color: #F8FAFC !important;
             }
 
             /* Banner Alerta Crítica */
             .critical-banner {
                 background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
                 border-left: 4px solid #EF4444;
-                color: #FCA5A5;
+                color: #FCA5A5 !important;
                 padding: 14px 18px;
                 border-radius: 8px;
-                font-weight: 600;
+                font-weight: 700;
                 font-size: 0.92rem;
                 margin-bottom: 20px;
                 border: 1px solid rgba(239, 68, 68, 0.25);
@@ -99,13 +114,9 @@ def inyectar_estilos():
                 border-radius: 12px;
                 padding: 16px 18px;
                 box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.35);
-                transition: transform 0.15s ease, border-color 0.15s ease;
-            }
-            .kpi-container:hover {
-                border-color: #334155;
             }
             .kpi-title {
-                color: #94A3B8;
+                color: #94A3B8 !important;
                 font-size: 0.72rem;
                 font-weight: 700;
                 letter-spacing: 0.07em;
@@ -120,29 +131,34 @@ def inyectar_estilos():
             }
             .kpi-subtext {
                 font-size: 0.76rem;
-                color: #64748B;
+                color: #64748B !important;
             }
 
-            .kpi-val-total { color: #F8FAFC; }
-            .kpi-val-money { color: #38BDF8; }
-            .kpi-val-ok { color: #10B981; }
-            .kpi-val-alert { color: #F97316; }
+            .kpi-val-total { color: #F8FAFC !important; }
+            .kpi-val-money { color: #38BDF8 !important; }
+            .kpi-val-ok { color: #10B981 !important; }
+            .kpi-val-alert { color: #F97316 !important; }
 
             /* Botones de acción */
             div.stButton > button:first-child {
-                background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
-                color: #FFFFFF;
-                border: none;
-                border-radius: 8px;
-                font-weight: 700;
-                padding: 0.55rem 1rem;
-                box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
-                transition: all 0.2s ease;
+                background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
+                color: #FFFFFF !important;
+                border: none !important;
+                border-radius: 8px !important;
+                font-weight: 700 !important;
+                padding: 0.55rem 1rem !important;
+                box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25) !important;
             }
             div.stButton > button:first-child:hover {
-                background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
-                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
-                color: #FFFFFF;
+                background: linear-gradient(135deg, #FB923C 0%, #F97316 100%) !important;
+                color: #FFFFFF !important;
+            }
+
+            /* Inputs y Cajas de texto en modo oscuro permanente */
+            input, select, textarea, div[data-baseweb="select"] > div {
+                background-color: #1A2333 !important;
+                color: #F8FAFC !important;
+                border-color: #334155 !important;
             }
 
             div[role="radiogroup"] {
@@ -181,12 +197,12 @@ def main():
                 st.image(LOGO_PATH, width=130)
 
         st.markdown("<h2 style='text-align: center; margin-top: 5px; margin-bottom: 0px;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94A3B8 !important; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
         st.divider()
 
         st.markdown("### Acceso Administrador")
         if not st.session_state["es_admin"]:
-            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10)
+            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10, key="admin_pin")
             if st.button("Desbloquear Edición", use_container_width=True):
                 if pin_input == ADMIN_PIN:
                     st.session_state["es_admin"] = True

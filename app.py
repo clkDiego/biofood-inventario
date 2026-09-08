@@ -132,7 +132,6 @@ def inyectar_estilos(es_modo_claro=False):
                 background-color: transparent !important;
             }}
 
-            /* Tipografia equilibrada sin exceso de grosor */
             h1 {{
                 color: {text_title} !important;
                 font-weight: 600 !important;
@@ -193,7 +192,7 @@ def inyectar_estilos(es_modo_claro=False):
             .kpi-val-ok {{ color: {kpi_ok} !important; }}
             .kpi-val-alert {{ color: {kpi_alert} !important; }}
 
-            /* Botones de accion */
+            /* Botones de acción */
             div.stButton > button:first-child {{
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
                 color: #FFFFFF !important;
@@ -208,7 +207,44 @@ def inyectar_estilos(es_modo_claro=False):
                 color: #FFFFFF !important;
             }}
 
-            /* Inputs y Selectores adaptados al tema */
+            /* Tabla HTML Sincronizada */
+            .tabla-contenedor {{
+                width: 100%;
+                overflow-x: auto;
+                margin-top: 10px;
+                border-radius: 8px;
+                border: 1px solid {border_sidebar};
+            }}
+            .tabla-tema {{
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.88rem;
+                text-align: left;
+            }}
+            .tabla-tema th {{
+                background-color: {bg_card} !important;
+                color: {text_muted} !important;
+                padding: 10px 14px;
+                border-bottom: 2px solid {border_sidebar};
+                text-transform: uppercase;
+                font-size: 0.72rem;
+                font-weight: 600;
+                letter-spacing: 0.05em;
+            }}
+            .tabla-tema td {{
+                background-color: {bg_app} !important;
+                color: {text_body} !important;
+                padding: 10px 14px;
+                border-bottom: 1px solid {border_sidebar};
+            }}
+            .tabla-tema tr:last-child td {{
+                border-bottom: none;
+            }}
+            .tabla-tema tr:hover td {{
+                background-color: {bg_card} !important;
+            }}
+
+            /* Inputs adaptados */
             input, select, textarea, div[data-baseweb="select"] > div {{
                 background-color: {input_bg} !important;
                 color: {input_text} !important;
@@ -342,7 +378,6 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
-    # Inyección de estilos adaptada a la selección
     inyectar_estilos(es_modo_claro=(st.session_state["tema_visual"] == "Claro"))
 
     # --- CABECERA PRINCIPAL ---
@@ -436,7 +471,7 @@ def main():
     st.write("")
     st.divider()
 
-    # 4. Catálogo de Existencias (Edición en Tabla)
+    # 4. Catálogo de Existencias
     col_t1, col_t2 = st.columns([3, 1])
     with col_t1:
         st.markdown("### Catálogo de Suplementos y Existencias")
@@ -474,7 +509,7 @@ def main():
         df_vista = df_vista.rename(columns=nombres_cabecera)
 
         if st.session_state["es_admin"]:
-            st.caption("Modo Administrador: Puedes modificar Línea, Envase, Venta, Stock y Mínimo directamente en la tabla.")
+            st.caption("Modo Administrador: Modifica directamente en la tabla Línea, Envase, Venta, Stock y Mínimo.")
 
             column_config = {
                 "SKU": st.column_config.TextColumn("SKU", disabled=True),
@@ -570,8 +605,11 @@ def main():
                     else:
                         st.error("Hubo un error al sincronizar algunos cambios en Supabase.")
         else:
-            st.dataframe(df_vista, use_container_width=True, hide_index=True)
+            # Vista Consulta: Render HTML directo adaptado al 100% al tema visual
+            html_tabla = df_vista.to_html(index=False, escape=False, classes="tabla-tema")
+            st.markdown(f'<div class="tabla-contenedor">{html_tabla}</div>', unsafe_allow_html=True)
 
+        st.write("")
         csv_data = df_vista.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="Exportar Planilla de Inventario (CSV)",
@@ -709,8 +747,10 @@ def main():
                 "cantidad_fmt": "CANTIDAD"
             })
             
-            st.dataframe(df_mov_vista, use_container_width=True, hide_index=True)
+            html_mov = df_mov_vista.to_html(index=False, escape=False, classes="tabla-tema")
+            st.markdown(f'<div class="tabla-contenedor">{html_mov}</div>', unsafe_allow_html=True)
             
+            st.write("")
             csv_mov = df_mov_vista.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="Descargar Reporte de Movimientos (CSV)",

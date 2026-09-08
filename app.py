@@ -17,6 +17,9 @@ from database import (
 )
 from rules_engine import procesar_metricas_globales
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOGO_PATH = os.path.join(BASE_DIR, "logo.png")
+
 # Catálogo oficial Biofood Nutrition
 PRODUCTOS_BIOFOOD = {
     "Polvos": [
@@ -58,6 +61,11 @@ PRODUCTOS_BIOFOOD = {
 }
 
 OPCIONES_ENVASE = ["Frasco", "Pote", "Display", "Caja", "Pack", "Saco/Balde", "Bolsa", "Unidad"]
+
+MAPA_MIGRACION_CATEGORIAS = {
+    "Proteínas & Gainers": "Polvos",
+    "Bebidas Funcionales & Control de Peso": "Bebidas"
+}
 
 def inyectar_estilos():
     st.markdown("""
@@ -142,8 +150,8 @@ def inyectar_estilos():
     """, unsafe_allow_html=True)
 
 def main():
-    logo_file = "logo.png"
-    favicon_path = logo_file if os.path.exists(logo_file) else None
+    existe_logo = os.path.exists(LOGO_PATH)
+    favicon_path = LOGO_PATH if existe_logo else None
 
     st.set_page_config(
         page_title="Biofood Nutrition — Control de Stock",
@@ -165,13 +173,13 @@ def main():
 
     # --- BARRA LATERAL ---
     with st.sidebar:
-        if os.path.exists(logo_file):
+        if existe_logo:
             col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
             with col_l2:
-                st.image(logo_file, width=130)
+                st.image(LOGO_PATH, width=130)
 
-        st.markdown("<h2 style='text-align: center; margin-top: 5px;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.85rem;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; margin-top: 5px; margin-bottom: 0px;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
         st.divider()
 
         st.markdown("### Acceso Administrador")
@@ -249,9 +257,18 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
-    # --- PANEL PRINCIPAL ---
-    st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
-    st.caption("Monitoreo en Tiempo Real · Almacén Central")
+    # --- CABECERA PRINCIPAL ---
+    if existe_logo:
+        col_hdr_logo, col_hdr_txt = st.columns([1, 8])
+        with col_hdr_logo:
+            st.image(LOGO_PATH, width=85)
+        with col_hdr_txt:
+            st.markdown("<h1 style='margin-bottom: 0px;'>Biofood Nutrition — Centro de Gestión de Stock</h1>", unsafe_allow_html=True)
+            st.caption("Monitoreo en Tiempo Real · Almacén Central")
+    else:
+        st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
+        st.caption("Monitoreo en Tiempo Real · Almacén Central")
+
     st.write("")
 
     # 1. Alerta Crítica
@@ -325,10 +342,11 @@ def main():
                 st_act = item.get("stock_actual", 0)
                 st_min = item.get("stock_minimo", 0)
                 deficit = max(0, st_min - st_act)
+                cat_limpia = MAPA_MIGRACION_CATEGORIAS.get(item.get("categoria"), item.get("categoria", ""))
                 lista_detalle.append({
                     "SKU": item.get("sku", ""),
                     "SUPLEMENTO / PRODUCTO": item.get("nombre", ""),
-                    "LÍNEA": item.get("categoria", ""),
+                    "LÍNEA": cat_limpia,
                     "DISPONIBLE": f"{st_act} {item.get('unidad_medida', 'uds')}",
                     "STOCK MÍNIMO": f"{st_min} {item.get('unidad_medida', 'uds')}",
                     "DÉFICIT (A PEDIR)": f"+{deficit} {item.get('unidad_medida', 'uds')}"
@@ -348,6 +366,9 @@ def main():
 
     if datos.get("catalogo"):
         df = pd.DataFrame(datos["catalogo"])
+
+        # Normalizar cualquier categoría vieja a la nueva antes de mostrarla
+        df["categoria"] = df["categoria"].replace(MAPA_MIGRACION_CATEGORIAS)
 
         filtro_col1, filtro_col2 = st.columns([2, 2])
         with filtro_col1:
@@ -375,7 +396,6 @@ def main():
         }
         df_vista = df_vista.rename(columns=nombres_cabecera)
 
-        # En Modo Admin, se habilita la edición de todo excepto SKU, PRODUCTO y ESTADO
         if st.session_state["es_admin"]:
             st.caption("Modo Administrador: Puedes modificar Línea, Envase, Venta, Stock y Mínimo directamente en la tabla.")
 
@@ -422,7 +442,6 @@ def main():
                 key="editor_catalogo"
             )
 
-            # Detección de cambios campo por campo
             mapa_original = {
                 row["SKU"]: (
                     str(row["LÍNEA"]),

@@ -43,6 +43,9 @@ def init_db():
                     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            # Migracion automatica de nombres antiguos a nuevos
+            cursor.execute("UPDATE productos SET categoria = 'Polvos' WHERE categoria = 'Proteínas & Gainers';")
+            cursor.execute("UPDATE productos SET categoria = 'Bebidas' WHERE categoria = 'Bebidas Funcionales & Control de Peso';")
         else:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS productos (
@@ -73,6 +76,9 @@ def init_db():
                     FOREIGN KEY (producto_id) REFERENCES productos(id)
                 );
             """)
+            cursor.execute("UPDATE productos SET categoria = 'Polvos' WHERE categoria = 'Proteínas & Gainers';")
+            cursor.execute("UPDATE productos SET categoria = 'Bebidas' WHERE categoria = 'Bebidas Funcionales & Control de Peso';")
+
         conn.commit()
         cursor.close()
     except Exception as e:
@@ -215,7 +221,6 @@ def actualizar_stock_minimo(producto_id, nuevo_minimo):
         conn.close()
 
 def actualizar_producto_desde_tabla(sku, categoria, unidad_medida, precio_venta, stock_actual, stock_minimo):
-    """Actualiza todos los campos editables desde la tabla de inventario."""
     conn = get_connection()
     try:
         cursor = conn.cursor()

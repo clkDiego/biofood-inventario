@@ -15,7 +15,7 @@ from database import (
 )
 from rules_engine import procesar_metricas_globales
 
-# Catálogo oficial Biofood Nutrition (solo con precio venta sugerido)
+# Catálogo oficial Biofood Nutrition
 PRODUCTOS_BIOFOOD = {
     "Proteínas & Gainers": [
         {"nombre": "100% Whey Protein 5 Lbs (2.27 kg)", "unidad": "Pote", "venta": 90000},
@@ -51,69 +51,84 @@ PRODUCTOS_BIOFOOD = {
 def inyectar_estilos():
     st.markdown("""
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
             
             html, body, [class*="css"] {
-                font-family: 'Inter', sans-serif;
+                font-family: 'Plus Jakarta Sans', sans-serif;
             }
 
-            /* Banner Alerta Crítica Biofood */
+            .stApp {
+                background-color: #0B0F17;
+            }
+
+            /* Banner Alerta Crítica */
             .critical-banner {
-                background: linear-gradient(90deg, rgba(234, 88, 12, 0.15) 0%, rgba(15, 23, 42, 0.6) 100%);
-                border-left: 5px solid #FF5722;
-                color: #FF8A65;
-                padding: 14px 20px;
+                background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+                border-left: 4px solid #EF4444;
+                color: #FCA5A5;
+                padding: 14px 18px;
                 border-radius: 8px;
                 font-weight: 600;
-                font-size: 0.95rem;
+                font-size: 0.92rem;
                 margin-bottom: 20px;
-                border: 1px solid rgba(255, 87, 34, 0.3);
+                border: 1px solid rgba(239, 68, 68, 0.25);
             }
 
-            /* Tarjetas KPIs Deportivas */
+            /* Tarjetas KPIs */
             .kpi-container {
-                background-color: #1E293B;
-                border: 1px solid #334155;
+                background: #141C2E;
+                border: 1px solid #1E293B;
                 border-radius: 12px;
-                padding: 18px 20px;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+                padding: 16px 18px;
+                box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.35);
+                transition: transform 0.15s ease, border-color 0.15s ease;
+            }
+            .kpi-container:hover {
+                border-color: #334155;
             }
             .kpi-title {
                 color: #94A3B8;
                 font-size: 0.72rem;
                 font-weight: 700;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.07em;
                 text-transform: uppercase;
-                margin-bottom: 4px;
+                margin-bottom: 6px;
             }
             .kpi-value {
                 font-size: 1.85rem;
                 font-weight: 800;
-                margin-bottom: 2px;
+                line-height: 1.1;
+                margin-bottom: 4px;
             }
             .kpi-subtext {
-                font-size: 0.78rem;
+                font-size: 0.76rem;
                 color: #64748B;
             }
 
             .kpi-val-total { color: #F8FAFC; }
             .kpi-val-money { color: #38BDF8; }
             .kpi-val-ok { color: #10B981; }
-            .kpi-val-alert { color: #FF5722; }
+            .kpi-val-alert { color: #F97316; }
 
-            /* Botones estilo Biofood */
+            /* Botones de acción */
             div.stButton > button:first-child {
-                background-color: #EA580C;
+                background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
                 color: #FFFFFF;
                 border: none;
                 border-radius: 8px;
                 font-weight: 700;
+                padding: 0.55rem 1rem;
+                box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
                 transition: all 0.2s ease;
             }
             div.stButton > button:first-child:hover {
-                background-color: #C2410C;
-                border: none;
+                background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
                 color: #FFFFFF;
+            }
+
+            div[role="radiogroup"] {
+                gap: 16px;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -121,7 +136,6 @@ def inyectar_estilos():
 def main():
     st.set_page_config(
         page_title="Biofood Nutrition — Control de Stock",
-        page_icon="⚡",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -129,54 +143,50 @@ def main():
     init_db()
     inyectar_estilos()
 
-    # --- CONTROL DE ACCESO (ADMIN PIN) ---
     ADMIN_PIN = st.secrets.get("ADMIN_PIN", "2817")
     if "es_admin" not in st.session_state:
         st.session_state["es_admin"] = False
 
-    # Productos activos para catálogo y ventas
     productos_activos = obtener_todos_productos(solo_activos=True)
     todos_los_productos = obtener_todos_productos(solo_activos=False)
     datos = procesar_metricas_globales(productos_activos)
 
     # --- BARRA LATERAL ---
     with st.sidebar:
-        st.markdown("## ⚡ BIOFOOD NUTRITION")
-        st.caption("Sistema de Bodega & Centro de Distribución")
+        st.markdown("## BIOFOOD NUTRITION")
+        st.caption("Sistema de Bodega y Distribución")
         st.divider()
 
-        # Acceso con PIN
-        st.markdown("### 🔐 Acceso Administrador")
+        st.markdown("### Acceso Administrador")
         if not st.session_state["es_admin"]:
             pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10)
             if st.button("Desbloquear Edición", use_container_width=True):
                 if pin_input == ADMIN_PIN:
                     st.session_state["es_admin"] = True
-                    st.toast("✅ Modo Administrador activado.", icon="🔓")
+                    st.toast("Modo Administrador activado.")
                     st.rerun()
                 else:
                     st.error("PIN incorrecto.")
         else:
-            st.success("✅ Modo Administrador Activo")
+            st.success("Modo Administrador Activo")
             if st.button("Bloquear / Cerrar Sesión", use_container_width=True):
                 st.session_state["es_admin"] = False
-                st.toast("Sesión cerrada.", icon="🔒")
+                st.toast("Sesión cerrada.")
                 st.rerun()
 
         st.divider()
 
-        # Formulario de Alta de Suplementos (Solo Admin)
         if st.session_state["es_admin"]:
-            st.markdown("**REGISTRAR SUPLEMENTO**")
+            st.markdown("**REGISTRAR NUEVO SUPLEMENTO**")
             
             categoria_sel = st.selectbox("1. Línea de Producto:", list(PRODUCTOS_BIOFOOD.keys()))
             sugerencias_cat = PRODUCTOS_BIOFOOD[categoria_sel]
-            nombres_sugeridos = [item["nombre"] for item in sugerencias_cat] + ["+ Ingresar otro producto manual..."]
+            nombres_sugeridos = [item["nombre"] for item in sugerencias_cat] + ["Ingresar otro suplemento manual..."]
             
-            sel_nombre = st.selectbox("2. Catálogo Oficial Biofood:", nombres_sugeridos)
+            sel_nombre = st.selectbox("2. Catálogo Sugerido:", nombres_sugeridos)
             
-            if sel_nombre == "+ Ingresar otro producto manual...":
-                nombre_final = st.text_input("Nombre comercial del producto:", placeholder="Ej: Glutamina Pure 300g").strip()
+            if sel_nombre == "Ingresar otro suplemento manual...":
+                nombre_final = st.text_input("Nombre comercial:", placeholder="Ej: Creatina Micronizada 300g").strip()
                 unidad_default = "Pote"
                 venta_default = 19990
             else:
@@ -187,61 +197,60 @@ def main():
 
             opciones_unidad = ["Pote", "Display", "Pack", "Frasco", "Saco/Balde", "Bolsa", "Unidad"]
             idx_unidad = opciones_unidad.index(unidad_default) if unidad_default in opciones_unidad else 0
-            unidad_medida = st.selectbox("3. Formato de Envase:", opciones_unidad, index=idx_unidad)
+            unidad_medida = st.selectbox("3. Formato Envase:", opciones_unidad, index=idx_unidad)
 
             auto_sku = st.checkbox("Generar SKU automático", value=True)
             if auto_sku:
                 sku_final = generar_sku_sugerido(categoria_sel)
                 st.info(f"SKU sugerido: **{sku_final}**")
             else:
-                sku_final = st.text_input("Código SKU / Barras:", placeholder="Ej: BF-WHEY-5LB").strip().upper()
+                sku_final = st.text_input("Código SKU:", placeholder="Ej: BF-CREA-300").strip().upper()
 
             with st.form("form_registro_biofood", clear_on_submit=True):
                 precio_venta = st.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
                 
                 c_stock, c_min = st.columns(2)
                 stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
-                stock_minimo = c_min.number_input("Stock de Seguridad", min_value=0, step=1, value=5)
+                stock_minimo = c_min.number_input("Stock Mínimo", min_value=0, step=1, value=5)
 
                 btn_guardar = st.form_submit_button("Guardar en Inventario", use_container_width=True, type="primary")
 
                 if btn_guardar:
                     if not nombre_final:
-                        st.error("⚠️ El nombre del producto es obligatorio.")
+                        st.error("El nombre del producto es obligatorio.")
                     elif not sku_final:
-                        st.error("⚠️ El código SKU es obligatorio.")
+                        st.error("El código SKU es obligatorio.")
                     else:
                         exito = registrar_producto(
                             sku_final, nombre_final, categoria_sel, unidad_medida,
                             0, int(precio_venta), int(stock_actual), int(stock_minimo)
                         )
                         if exito:
-                            st.toast(f"✅ '{nombre_final}' guardado con éxito.", icon="⚡")
+                            st.toast(f"'{nombre_final}' guardado con éxito.")
                             st.rerun()
                         else:
-                            st.error("❌ El código SKU o suplemento ya existe.")
+                            st.error("El código SKU o producto ya existe.")
         else:
-            st.info("👁️ **Modo Consulta Activo**\n\nEl catálogo está en modo solo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
+            st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
     # --- PANEL PRINCIPAL ---
     st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
     st.caption("Monitoreo en Tiempo Real · Almacén Central")
     st.write("")
 
-    # 1. Alerta Crítica Proactiva (PC3)
+    # 1. Alerta Crítica
     if datos.get("productos_reposicion", 0) > 0:
-        st.toast(f"¡Atención! {datos['productos_reposicion']} producto(s) en quiebre o nivel crítico.", icon="⚠️")
+        st.toast(f"Atención: {datos['productos_reposicion']} producto(s) en nivel crítico.")
         st.markdown(
             f"""
             <div class="critical-banner">
-                🚨 <strong>ALERTA DE REPOSICIÓN:</strong> {datos['productos_reposicion']} suplemento(s) se encuentran bajo el stock de seguridad — Se requiere reposición de laboratorio.
+                <strong>ALERTA DE REPOSICIÓN:</strong> {datos['productos_reposicion']} suplemento(s) se encuentran bajo el stock mínimo de seguridad.
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # 2. Tarjetas de KPIs Comerciales
-    # Valoración total del inventario a precio de venta
+    # 2. Tarjetas de KPIs
     valor_total_venta = sum(p.get("stock_actual", 0) * p.get("precio_venta", 0) for p in productos_activos)
 
     k1, k2, k3, k4 = st.columns(4)
@@ -290,10 +299,10 @@ def main():
             unsafe_allow_html=True
         )
 
-    # 3. Detalle Interactivo de Déficit
+    # 3. Detalle de Déficit
     if datos.get("productos_reposicion", 0) > 0:
         st.write("")
-        with st.expander("🚨 **Ver detalle de suplementos que requieren reposición**", expanded=False):
+        with st.expander("Ver detalle de suplementos que requieren reposición", expanded=False):
             items_reposicion = [p for p in datos.get("catalogo", []) if p.get("estado") == "REPOSICIÓN"]
             lista_detalle = []
             for item in items_reposicion:
@@ -314,10 +323,10 @@ def main():
     st.write("")
     st.divider()
 
-    # 4. Catálogo y Trazabilidad
+    # 4. Catálogo de Existencias
     col_t1, col_t2 = st.columns([3, 1])
     with col_t1:
-        st.markdown("### Catálogo de Suplementos y Precios")
+        st.markdown("### Catálogo de Suplementos y Existencias")
     with col_t2:
         st.caption(f"**{len(datos.get('catalogo', []))}** suplementos activos")
 
@@ -326,7 +335,7 @@ def main():
 
         filtro_col1, filtro_col2 = st.columns([2, 2])
         with filtro_col1:
-            busqueda = st.text_input("🔍 Buscar por suplemento o SKU:", placeholder="Ej: Whey, Creatina, PRO-001").strip().lower()
+            busqueda = st.text_input("Buscar por suplemento o SKU:", placeholder="Ej: Whey, Creatina, BF-PRE-001").strip().lower()
         with filtro_col2:
             filtro_estado = st.selectbox("Filtrar por Condición:", ["Todos", "OK", "REPOSICIÓN"])
 
@@ -354,7 +363,7 @@ def main():
 
         csv_data = df_vista.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="📥 Exportar Planilla de Inventario (CSV)",
+            label="Exportar Planilla de Inventario (CSV)",
             data=csv_data,
             file_name="inventario_biofood_nutrition.csv",
             mime="text/csv"
@@ -364,37 +373,47 @@ def main():
 
     st.write("")
 
-    # 5. Registro Transaccional (PC2)
-    with st.expander("⚡ Registrar Movimiento de Bodega (Venta / Recepción de Laboratorio)"):
+    # 5. Registro Transaccional
+    with st.expander("Registrar Movimiento de Bodega (Venta / Recepción)", expanded=False):
         if not st.session_state["es_admin"]:
-            st.info("🔒 Requiere permisos de administrador. Ingresa el PIN en la barra lateral para registrar entradas o salidas.")
+            st.info("Requiere permisos de administrador. Ingresa el PIN en la barra lateral para registrar movimientos.")
         elif productos_activos:
-            c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
             opciones = {
-                f"{p['sku']} - {p['nombre']} (Stock: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]
+                f"{p['sku']} — {p['nombre']} (Stock actual: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]
                 for p in productos_activos
             }
-            prod_sel = c1.selectbox("Seleccionar Suplemento:", list(opciones.keys()))
-            tipo = c2.selectbox(
-                "Tipo de Movimiento:",
-                ["SALIDA", "ENTRADA"],
-                format_func=lambda x: "Venta / Despacho (Salida)" if x == "SALIDA" else "Recepción Laboratorio (Entrada)"
-            )
-            cant = c3.number_input("Cantidad de Envases:", min_value=1, step=1, value=1)
+            
+            prod_sel = st.selectbox("1. Seleccionar Suplemento:", list(opciones.keys()))
 
-            if c4.button("Confirmar Movimiento", use_container_width=True, type="primary"):
-                id_seleccionado = opciones[prod_sel]
-                if actualizar_stock_transaccional(id_seleccionado, tipo, int(cant)):
-                    st.toast(f"Operación de {tipo} registrada correctamente.", icon="⚡")
-                    st.success("Movimiento registrado en base de datos.")
-                    st.rerun()
-                else:
-                    st.error("Error: Salida rechazada por saldo insuficiente en bodega.")
+            c_tipo, c_cant, c_btn = st.columns([3, 2, 2])
+            
+            with c_tipo:
+                tipo_display = st.radio(
+                    "2. Operación:",
+                    ["Salida (Venta)", "Entrada (Recepción)"],
+                    horizontal=True
+                )
+                tipo = "SALIDA" if "Salida" in tipo_display else "ENTRADA"
 
-    # 6. Modificar Stock Mínimo (Solo Admin)
+            with c_cant:
+                cant = st.number_input("3. Cantidad de envases:", min_value=1, step=1, value=1)
+
+            with c_btn:
+                st.write("")
+                st.write("")
+                if st.button("Confirmar Movimiento", use_container_width=True, type="primary"):
+                    id_seleccionado = opciones[prod_sel]
+                    if actualizar_stock_transaccional(id_seleccionado, tipo, int(cant)):
+                        st.toast(f"Operación de {tipo} registrada.")
+                        st.success(f"Movimiento de {tipo} registrado correctamente.")
+                        st.rerun()
+                    else:
+                        st.error("Error: Salida rechazada por saldo insuficiente en bodega.")
+
+    # 6. Modificar Stock Mínimo
     if st.session_state["es_admin"] and productos_activos:
         st.write("")
-        with st.expander("⚙️ Modificar Stock Mínimo / Seguridad (Solo Admin)"):
+        with st.expander("Modificar Stock Mínimo / Seguridad (Solo Admin)"):
             c_prod_min, c_val_min, c_btn_min = st.columns([4, 2, 2])
             opciones_min = {
                 f"{p['sku']} - {p['nombre']} (Mínimo actual: {p['stock_minimo']} {p.get('unidad_medida', '')})": p
@@ -415,17 +434,16 @@ def main():
             c_btn_min.write("")
             if c_btn_min.button("Actualizar Mínimo", use_container_width=True, type="primary"):
                 if actualizar_stock_minimo(item_datos["id"], int(nuevo_valor_min)):
-                    st.toast(f"Stock mínimo actualizado a {nuevo_valor_min}.", icon="✅")
-                    st.success(f"Stock mínimo de '{item_datos['nombre']}' ajustado a {nuevo_valor_min}.")
+                    st.toast(f"Stock mínimo ajustado a {nuevo_valor_min}.")
                     st.rerun()
                 else:
                     st.error("Error al actualizar en la base de datos.")
 
-    # 7. Gestión de Estados: Dar de Baja / Reactivar Suplementos (Solo Admin)
+    # 7. Dar de Baja / Reactivar
     if st.session_state["es_admin"] and todos_los_productos:
         st.write("")
-        with st.expander("🗑️ Dar de Baja / Reactivar Suplemento (Solo Admin)"):
-            st.caption("Dar de baja oculta el producto del catálogo y de las opciones de venta sin borrar su historial de transacciones.")
+        with st.expander("Dar de Baja / Reactivar Suplemento (Solo Admin)"):
+            st.caption("Dar de baja oculta el producto del catálogo y de la lista de ventas sin borrar su historial de transacciones.")
             col_sel, col_acc = st.columns([4, 2])
             
             opciones_estado = {
@@ -441,34 +459,33 @@ def main():
             if esta_activo:
                 if col_acc.button("Dar de Baja", use_container_width=True):
                     if cambiar_estado_producto(prod_estado["id"], False):
-                        st.toast(f"'{prod_estado['nombre']}' dado de baja.", icon="🗑️")
+                        st.toast(f"'{prod_estado['nombre']}' dado de baja.")
                         st.rerun()
                     else:
                         st.error("Error al cambiar estado.")
             else:
                 if col_acc.button("Reactivar Suplemento", use_container_width=True, type="primary"):
                     if cambiar_estado_producto(prod_estado["id"], True):
-                        st.toast(f"'{prod_estado['nombre']}' reactivado exitosamente.", icon="✅")
+                        st.toast(f"'{prod_estado['nombre']}' reactivado.")
                         st.rerun()
                     else:
                         st.error("Error al reactivar suplemento.")
 
     st.write("")
 
-    # 8. Historial de Auditoría y Trazabilidad
-    with st.expander("📋 Historial de Auditoría de Movimientos (Últimas transacciones)"):
+    # 8. Historial de Auditoría
+    with st.expander("Historial de Auditoría de Movimientos (Últimas transacciones)"):
         movimientos = obtener_historial_movimientos()
         if movimientos:
             df_mov = pd.DataFrame(movimientos)
             
-            # Conversión a hora local de Chile
             fechas = pd.to_datetime(df_mov["fecha"])
             if fechas.dt.tz is None:
                 fechas = fechas.dt.tz_localize("UTC")
             df_mov["fecha"] = fechas.dt.tz_convert("America/Santiago").dt.strftime("%d/%m/%Y %H:%M")
             
             df_mov["tipo"] = df_mov["tipo"].apply(
-                lambda x: "🟢 ENTRADA (Recepción)" if x == "ENTRADA" else "🔴 SALIDA (Venta/Despacho)"
+                lambda x: "ENTRADA" if x == "ENTRADA" else "SALIDA"
             )
             
             df_mov["cantidad_fmt"] = df_mov["cantidad"].astype(str) + " " + df_mov["unidad_medida"]
@@ -485,7 +502,7 @@ def main():
             
             csv_mov = df_mov_vista.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Descargar Reporte de Movimientos (CSV)",
+                label="Descargar Reporte de Movimientos (CSV)",
                 data=csv_mov,
                 file_name="historial_movimientos_biofood.csv",
                 mime="text/csv"

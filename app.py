@@ -66,92 +66,36 @@ MAPA_MIGRACION_CATEGORIAS = {
     "Bebidas Funcionales & Control de Peso": "Bebidas"
 }
 
-def inyectar_estilos(es_modo_claro=False):
-    if es_modo_claro:
-        bg_app = "#F8FAFC"
-        bg_sidebar = "#FFFFFF"
-        border_sidebar = "#E2E8F0"
-        text_title = "#0F172A"
-        text_body = "#334155"
-        text_muted = "#64748B"
-        bg_card = "#FFFFFF"
-        border_card = "1px solid #E2E8F0"
-        card_shadow = "0 1px 3px 0 rgba(0, 0, 0, 0.08)"
-        banner_bg = "#FEF2F2"
-        banner_border = "1px solid #FCA5A5"
-        banner_border_l = "4px solid #DC2626"
-        banner_text = "#991B1B"
-        input_bg = "#FFFFFF"
-        input_border = "#CBD5E1"
-        input_text = "#0F172A"
-        kpi_total = "#0F172A"
-        kpi_money = "#0284C7"
-        kpi_ok = "#059669"
-        kpi_alert = "#D97706"
-    else:
-        bg_app = "#0B0F17"
-        bg_sidebar = "#111827"
-        border_sidebar = "#1F2937"
-        text_title = "#F1F5F9"
-        text_body = "#CBD5E1"
-        text_muted = "#94A3B8"
-        bg_card = "#141C2E"
-        border_card = "1px solid #1E293B"
-        card_shadow = "0 4px 12px 0 rgba(0, 0, 0, 0.3)"
-        banner_bg = "rgba(239, 68, 68, 0.12)"
-        banner_border = "1px solid rgba(239, 68, 68, 0.25)"
-        banner_border_l = "4px solid #EF4444"
-        banner_text = "#FCA5A5"
-        input_bg = "#161F30"
-        input_border = "#334155"
-        input_text = "#F8FAFC"
-        kpi_total = "#F8FAFC"
-        kpi_money = "#38BDF8"
-        kpi_ok = "#10B981"
-        kpi_alert = "#F97316"
-
+def inyectar_estilos():
     st.markdown(f"""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-            
+
             html, body, [class*="css"] {{
                 font-family: 'Plus Jakarta Sans', sans-serif;
                 font-weight: 400;
             }}
 
-            .stApp, [data-testid="stAppViewContainer"] {{
-                background-color: {bg_app} !important;
-            }}
-
-            section[data-testid="stSidebar"], [data-testid="stSidebarContent"] {{
-                background-color: {bg_sidebar} !important;
-                border-right: 1px solid {border_sidebar} !important;
-            }}
-
-            header[data-testid="stHeader"] {{
-                background-color: transparent !important;
-            }}
-
             h1 {{
-                color: {text_title} !important;
+                color: var(--text-color) !important;
                 font-weight: 600 !important;
                 letter-spacing: -0.02em;
             }}
             h2, h3, h4 {{
-                color: {text_title} !important;
+                color: var(--text-color) !important;
                 font-weight: 600 !important;
             }}
-            p, span, label, div, [data-testid="stWidgetLabel"] p {{
-                color: {text_body} !important;
+            p, span, label, [data-testid="stWidgetLabel"] p {{
+                color: var(--text-color) !important;
                 font-weight: 400;
             }}
 
-            /* Banner Alerta Crítica */
+            /* Banner Alerta Critica */
             .critical-banner {{
-                background: {banner_bg} !important;
-                border: {banner_border} !important;
-                border-left: {banner_border_l} !important;
-                color: {banner_text} !important;
+                background: rgba(239, 68, 68, 0.12) !important;
+                border: 1px solid rgba(239, 68, 68, 0.35) !important;
+                border-left: 4px solid #EF4444 !important;
+                color: var(--text-color) !important;
                 padding: 12px 16px;
                 border-radius: 6px;
                 font-weight: 500;
@@ -161,14 +105,15 @@ def inyectar_estilos(es_modo_claro=False):
 
             /* Tarjetas KPIs */
             .kpi-container {{
-                background: {bg_card} !important;
-                border: {border_card} !important;
+                background: var(--secondary-background-color) !important;
+                border: 1px solid rgba(128, 128, 128, 0.25) !important;
                 border-radius: 10px;
                 padding: 16px 18px;
-                box-shadow: {card_shadow};
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             }}
             .kpi-title {{
-                color: {text_muted} !important;
+                color: var(--text-color) !important;
+                opacity: 0.6;
                 font-size: 0.72rem;
                 font-weight: 600;
                 letter-spacing: 0.05em;
@@ -183,16 +128,17 @@ def inyectar_estilos(es_modo_claro=False):
             }}
             .kpi-subtext {{
                 font-size: 0.78rem;
-                color: {text_muted} !important;
+                color: var(--text-color) !important;
+                opacity: 0.6;
                 font-weight: 400;
             }}
 
-            .kpi-val-total {{ color: {kpi_total} !important; }}
-            .kpi-val-money {{ color: {kpi_money} !important; }}
-            .kpi-val-ok {{ color: {kpi_ok} !important; }}
-            .kpi-val-alert {{ color: {kpi_alert} !important; }}
+            .kpi-val-total {{ color: var(--text-color) !important; }}
+            .kpi-val-money {{ color: #0284C7 !important; }}
+            .kpi-val-ok {{ color: #059669 !important; }}
+            .kpi-val-alert {{ color: #D97706 !important; }}
 
-            /* Botones de acción */
+            /* Botones de accion (color de marca fijo en ambos temas) */
             div.stButton > button:first-child {{
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
                 color: #FFFFFF !important;
@@ -205,51 +151,6 @@ def inyectar_estilos(es_modo_claro=False):
             div.stButton > button:first-child:hover {{
                 background: linear-gradient(135deg, #FB923C 0%, #F97316 100%) !important;
                 color: #FFFFFF !important;
-            }}
-
-            /* Tabla HTML Sincronizada */
-            .tabla-contenedor {{
-                width: 100%;
-                overflow-x: auto;
-                margin-top: 10px;
-                border-radius: 8px;
-                border: 1px solid {border_sidebar};
-            }}
-            .tabla-tema {{
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.88rem;
-                text-align: left;
-            }}
-            .tabla-tema th {{
-                background-color: {bg_card} !important;
-                color: {text_muted} !important;
-                padding: 10px 14px;
-                border-bottom: 2px solid {border_sidebar};
-                text-transform: uppercase;
-                font-size: 0.72rem;
-                font-weight: 600;
-                letter-spacing: 0.05em;
-            }}
-            .tabla-tema td {{
-                background-color: {bg_app} !important;
-                color: {text_body} !important;
-                padding: 10px 14px;
-                border-bottom: 1px solid {border_sidebar};
-            }}
-            .tabla-tema tr:last-child td {{
-                border-bottom: none;
-            }}
-            .tabla-tema tr:hover td {{
-                background-color: {bg_card} !important;
-            }}
-
-            /* Inputs adaptados */
-            input, select, textarea, div[data-baseweb="select"] > div {{
-                background-color: {input_bg} !important;
-                color: {input_text} !important;
-                border-color: {input_border} !important;
-                font-weight: 400;
             }}
 
             div[role="radiogroup"] {{
@@ -269,8 +170,7 @@ def main():
         initial_sidebar_state="expanded"
     )
 
-    if "tema_visual" not in st.session_state:
-        st.session_state["tema_visual"] = "Oscuro"
+  
 
     init_db()
 
@@ -293,15 +193,6 @@ def main():
         st.markdown("<p style='text-align: center; font-size: 0.82rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
         st.divider()
 
-        # Selector de Tema Visual
-        opciones_tema = ["Oscuro", "Claro"]
-        idx_tema = opciones_tema.index(st.session_state["tema_visual"]) if st.session_state["tema_visual"] in opciones_tema else 0
-        tema_elegido = st.radio("Tema visual:", opciones_tema, index=idx_tema, horizontal=True)
-        if tema_elegido != st.session_state["tema_visual"]:
-            st.session_state["tema_visual"] = tema_elegido
-            st.rerun()
-
-        st.divider()
 
         st.markdown("### Acceso Administrador")
         if not st.session_state["es_admin"]:
@@ -378,7 +269,7 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
-    inyectar_estilos(es_modo_claro=(st.session_state["tema_visual"] == "Claro"))
+ inyectar_estilos()
 
     # --- CABECERA PRINCIPAL ---
     st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")

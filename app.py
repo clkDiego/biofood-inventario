@@ -66,104 +66,159 @@ MAPA_MIGRACION_CATEGORIAS = {
     "Bebidas Funcionales & Control de Peso": "Bebidas"
 }
 
-def inyectar_estilos():
-    st.markdown("""
+def inyectar_estilos(es_modo_claro=False):
+    if es_modo_claro:
+        bg_app = "#F8FAFC"
+        bg_sidebar = "#FFFFFF"
+        border_sidebar = "#E2E8F0"
+        text_title = "#0F172A"
+        text_body = "#334155"
+        text_muted = "#64748B"
+        bg_card = "#FFFFFF"
+        border_card = "1px solid #E2E8F0"
+        card_shadow = "0 1px 3px 0 rgba(0, 0, 0, 0.08)"
+        banner_bg = "#FEF2F2"
+        banner_border = "1px solid #FCA5A5"
+        banner_border_l = "4px solid #DC2626"
+        banner_text = "#991B1B"
+        input_bg = "#FFFFFF"
+        input_border = "#CBD5E1"
+        input_text = "#0F172A"
+        kpi_total = "#0F172A"
+        kpi_money = "#0284C7"
+        kpi_ok = "#059669"
+        kpi_alert = "#D97706"
+    else:
+        bg_app = "#0B0F17"
+        bg_sidebar = "#111827"
+        border_sidebar = "#1F2937"
+        text_title = "#F1F5F9"
+        text_body = "#CBD5E1"
+        text_muted = "#94A3B8"
+        bg_card = "#141C2E"
+        border_card = "1px solid #1E293B"
+        card_shadow = "0 4px 12px 0 rgba(0, 0, 0, 0.3)"
+        banner_bg = "rgba(239, 68, 68, 0.12)"
+        banner_border = "1px solid rgba(239, 68, 68, 0.25)"
+        banner_border_l = "4px solid #EF4444"
+        banner_text = "#FCA5A5"
+        input_bg = "#161F30"
+        input_border = "#334155"
+        input_text = "#F8FAFC"
+        kpi_total = "#F8FAFC"
+        kpi_money = "#38BDF8"
+        kpi_ok = "#10B981"
+        kpi_alert = "#F97316"
+
+    st.markdown(f"""
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
             
-            html, body, [class*="css"] {
+            html, body, [class*="css"] {{
                 font-family: 'Plus Jakarta Sans', sans-serif;
-            }
+                font-weight: 400;
+            }}
 
-            /* Fondo general y barra lateral blindados */
-            .stApp, [data-testid="stAppViewContainer"] {
-                background-color: #0B0F17 !important;
-            }
+            .stApp, [data-testid="stAppViewContainer"] {{
+                background-color: {bg_app} !important;
+            }}
 
-            section[data-testid="stSidebar"], [data-testid="stSidebarContent"] {
-                background-color: #111827 !important;
-                border-right: 1px solid #1F2937 !important;
-            }
+            section[data-testid="stSidebar"], [data-testid="stSidebarContent"] {{
+                background-color: {bg_sidebar} !important;
+                border-right: 1px solid {border_sidebar} !important;
+            }}
 
-            header[data-testid="stHeader"] {
+            header[data-testid="stHeader"] {{
                 background-color: transparent !important;
-            }
+            }}
 
-            /* Forzar textos claros en toda la pantalla */
-            h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, [data-testid="stWidgetLabel"] p {
-                color: #F8FAFC !important;
-            }
+            /* Tipografia equilibrada sin exceso de grosor */
+            h1 {{
+                color: {text_title} !important;
+                font-weight: 600 !important;
+                letter-spacing: -0.02em;
+            }}
+            h2, h3, h4 {{
+                color: {text_title} !important;
+                font-weight: 600 !important;
+            }}
+            p, span, label, div, [data-testid="stWidgetLabel"] p {{
+                color: {text_body} !important;
+                font-weight: 400;
+            }}
 
             /* Banner Alerta Crítica */
-            .critical-banner {
-                background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
-                border-left: 4px solid #EF4444;
-                color: #FCA5A5 !important;
-                padding: 14px 18px;
-                border-radius: 8px;
-                font-weight: 700;
-                font-size: 0.92rem;
+            .critical-banner {{
+                background: {banner_bg} !important;
+                border: {banner_border} !important;
+                border-left: {banner_border_l} !important;
+                color: {banner_text} !important;
+                padding: 12px 16px;
+                border-radius: 6px;
+                font-weight: 500;
+                font-size: 0.9rem;
                 margin-bottom: 20px;
-                border: 1px solid rgba(239, 68, 68, 0.25);
-            }
+            }}
 
             /* Tarjetas KPIs */
-            .kpi-container {
-                background: #141C2E;
-                border: 1px solid #1E293B;
-                border-radius: 12px;
+            .kpi-container {{
+                background: {bg_card} !important;
+                border: {border_card} !important;
+                border-radius: 10px;
                 padding: 16px 18px;
-                box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.35);
-            }
-            .kpi-title {
-                color: #94A3B8 !important;
+                box-shadow: {card_shadow};
+            }}
+            .kpi-title {{
+                color: {text_muted} !important;
                 font-size: 0.72rem;
-                font-weight: 700;
-                letter-spacing: 0.07em;
+                font-weight: 600;
+                letter-spacing: 0.05em;
                 text-transform: uppercase;
                 margin-bottom: 6px;
-            }
-            .kpi-value {
-                font-size: 1.85rem;
-                font-weight: 800;
-                line-height: 1.1;
+            }}
+            .kpi-value {{
+                font-size: 1.75rem;
+                font-weight: 700;
+                line-height: 1.15;
                 margin-bottom: 4px;
-            }
-            .kpi-subtext {
-                font-size: 0.76rem;
-                color: #64748B !important;
-            }
+            }}
+            .kpi-subtext {{
+                font-size: 0.78rem;
+                color: {text_muted} !important;
+                font-weight: 400;
+            }}
 
-            .kpi-val-total { color: #F8FAFC !important; }
-            .kpi-val-money { color: #38BDF8 !important; }
-            .kpi-val-ok { color: #10B981 !important; }
-            .kpi-val-alert { color: #F97316 !important; }
+            .kpi-val-total {{ color: {kpi_total} !important; }}
+            .kpi-val-money {{ color: {kpi_money} !important; }}
+            .kpi-val-ok {{ color: {kpi_ok} !important; }}
+            .kpi-val-alert {{ color: {kpi_alert} !important; }}
 
-            /* Botones de acción */
-            div.stButton > button:first-child {
+            /* Botones de accion */
+            div.stButton > button:first-child {{
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
                 color: #FFFFFF !important;
                 border: none !important;
-                border-radius: 8px !important;
-                font-weight: 700 !important;
-                padding: 0.55rem 1rem !important;
-                box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25) !important;
-            }
-            div.stButton > button:first-child:hover {
+                border-radius: 6px !important;
+                font-weight: 600 !important;
+                padding: 0.5rem 1rem !important;
+                box-shadow: 0 2px 6px rgba(249, 115, 22, 0.2) !important;
+            }}
+            div.stButton > button:first-child:hover {{
                 background: linear-gradient(135deg, #FB923C 0%, #F97316 100%) !important;
                 color: #FFFFFF !important;
-            }
+            }}
 
-            /* Inputs y Cajas de texto en modo oscuro permanente */
-            input, select, textarea, div[data-baseweb="select"] > div {
-                background-color: #1A2333 !important;
-                color: #F8FAFC !important;
-                border-color: #334155 !important;
-            }
+            /* Inputs y Selectores adaptados al tema */
+            input, select, textarea, div[data-baseweb="select"] > div {{
+                background-color: {input_bg} !important;
+                color: {input_text} !important;
+                border-color: {input_border} !important;
+                font-weight: 400;
+            }}
 
-            div[role="radiogroup"] {
+            div[role="radiogroup"] {{
                 gap: 16px;
-            }
+            }}
         </style>
     """, unsafe_allow_html=True)
 
@@ -177,9 +232,11 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-    
+
+    if "tema_visual" not in st.session_state:
+        st.session_state["tema_visual"] = "Oscuro"
+
     init_db()
-    inyectar_estilos()
 
     ADMIN_PIN = st.secrets.get("ADMIN_PIN", "2817")
     if "es_admin" not in st.session_state:
@@ -194,10 +251,20 @@ def main():
         if existe_logo:
             col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
             with col_l2:
-                st.image(LOGO_PATH, width=130)
+                st.image(LOGO_PATH, width=120)
 
-        st.markdown("<h2 style='text-align: center; margin-top: 5px; margin-bottom: 0px;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #94A3B8 !important; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; margin-top: 5px; margin-bottom: 0px; font-size: 1.25rem;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 0.82rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
+        st.divider()
+
+        # Selector de Tema Visual
+        opciones_tema = ["Oscuro", "Claro"]
+        idx_tema = opciones_tema.index(st.session_state["tema_visual"]) if st.session_state["tema_visual"] in opciones_tema else 0
+        tema_elegido = st.radio("Tema visual:", opciones_tema, index=idx_tema, horizontal=True)
+        if tema_elegido != st.session_state["tema_visual"]:
+            st.session_state["tema_visual"] = tema_elegido
+            st.rerun()
+
         st.divider()
 
         st.markdown("### Acceso Administrador")
@@ -274,6 +341,9 @@ def main():
                             st.error("El código SKU o producto ya existe.")
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
+
+    # Inyección de estilos adaptada a la selección
+    inyectar_estilos(es_modo_claro=(st.session_state["tema_visual"] == "Claro"))
 
     # --- CABECERA PRINCIPAL ---
     st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")

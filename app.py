@@ -156,6 +156,39 @@ def inyectar_estilos():
             div[role="radiogroup"] {{
                 gap: 16px;
             }}
+
+            /* Tabla HTML propia (catalogo modo consulta / historial de auditoria) */
+            .tabla-contenedor {{
+                overflow-x: auto;
+                border: 1px solid rgba(128, 128, 128, 0.25);
+                border-radius: 10px;
+            }}
+            .tabla-tema {{
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
+            }}
+            .tabla-tema th {{
+                background-color: var(--secondary-background-color) !important;
+                color: var(--text-color) !important;
+                opacity: 0.85;
+                text-align: left;
+                padding: 10px 12px;
+                border-bottom: 2px solid rgba(128, 128, 128, 0.25);
+                text-transform: uppercase;
+                font-size: 0.72rem;
+                font-weight: 600;
+                white-space: nowrap;
+            }}
+            .tabla-tema td {{
+                color: var(--text-color) !important;
+                padding: 8px 12px;
+                border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+                white-space: nowrap;
+            }}
+            .tabla-tema tr:hover td {{
+                background-color: var(--secondary-background-color) !important;
+            }}
         </style>
     """, unsafe_allow_html=True)
 
@@ -169,8 +202,6 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-
-  
 
     init_db()
 
@@ -193,7 +224,6 @@ def main():
         st.markdown("<p style='text-align: center; font-size: 0.82rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
         st.divider()
 
-
         st.markdown("### Acceso Administrador")
         if not st.session_state["es_admin"]:
             pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10, key="admin_pin")
@@ -215,13 +245,13 @@ def main():
 
         if st.session_state["es_admin"]:
             st.markdown("**REGISTRAR NUEVO SUPLEMENTO**")
-            
+
             categoria_sel = st.selectbox("1. Línea de Producto:", list(PRODUCTOS_BIOFOOD.keys()))
             sugerencias_cat = PRODUCTOS_BIOFOOD[categoria_sel]
             nombres_sugeridos = [item["nombre"] for item in sugerencias_cat] + ["Ingresar otro suplemento manual..."]
-            
+
             sel_nombre = st.selectbox("2. Catálogo Sugerido:", nombres_sugeridos)
-            
+
             if sel_nombre == "Ingresar otro suplemento manual...":
                 nombre_final = st.text_input("Nombre comercial:", placeholder="Ej: Creatina Micronizada 300g").strip()
                 unidad_default = "Frasco" if categoria_sel == "Cápsulas" else "Pote"
@@ -244,7 +274,7 @@ def main():
 
             with st.form("form_registro_biofood", clear_on_submit=True):
                 precio_venta = st.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
-                
+
                 c_stock, c_min = st.columns(2)
                 stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
                 stock_minimo = c_min.number_input("Stock Mínimo", min_value=0, step=1, value=3)
@@ -269,7 +299,7 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
- inyectar_estilos()
+    inyectar_estilos()
 
     # --- CABECERA PRINCIPAL ---
     st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
@@ -390,11 +420,11 @@ def main():
 
         columnas_deseadas = ["sku", "nombre", "categoria", "unidad_medida", "precio_venta", "stock_actual", "stock_minimo", "estado"]
         columnas_presentes = [c for c in columnas_deseadas if c in df_filtrado.columns]
-        
+
         df_vista = df_filtrado[columnas_presentes]
         nombres_cabecera = {
-            "sku": "SKU", "nombre": "PRODUCTO", "categoria": "LÍNEA", 
-            "unidad_medida": "ENVASE", "precio_venta": "VENTA ($)", 
+            "sku": "SKU", "nombre": "PRODUCTO", "categoria": "LÍNEA",
+            "unidad_medida": "ENVASE", "precio_venta": "VENTA ($)",
             "stock_actual": "STOCK", "stock_minimo": "MÍNIMO", "estado": "ESTADO"
         }
         df_vista = df_vista.rename(columns=nombres_cabecera)
@@ -466,7 +496,7 @@ def main():
                     pre_edit = int(row["VENTA ($)"])
                     stk_edit = int(row["STOCK"])
                     min_edit = int(row["MÍNIMO"])
-                    
+
                     if (cat_edit, env_edit, pre_edit, stk_edit, min_edit) != orig:
                         cambios_detectados.append({
                             "sku": sku_actual,
@@ -522,11 +552,11 @@ def main():
                 f"{p['sku']} — {p['nombre']} (Stock actual: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]
                 for p in productos_activos
             }
-            
+
             prod_sel = st.selectbox("1. Seleccionar Suplemento:", list(opciones.keys()))
 
             c_tipo, c_cant, c_btn = st.columns([3, 2, 2])
-            
+
             with c_tipo:
                 tipo_display = st.radio(
                     "2. Operación:",
@@ -561,7 +591,7 @@ def main():
             }
             item_elegido_str = c_prod_min.selectbox("Suplemento a modificar:", list(opciones_min.keys()), key="sb_minimo")
             item_datos = opciones_min[item_elegido_str]
-            
+
             nuevo_valor_min = c_val_min.number_input(
                 "Nuevo Mínimo:",
                 min_value=0,
@@ -569,7 +599,7 @@ def main():
                 value=int(item_datos["stock_minimo"]),
                 key="num_input_min"
             )
-            
+
             c_btn_min.write("")
             c_btn_min.write("")
             if c_btn_min.button("Actualizar Mínimo", use_container_width=True, type="primary"):
@@ -585,7 +615,7 @@ def main():
         with st.expander("Dar de Baja / Reactivar Suplemento (Solo Admin)"):
             st.caption("Dar de baja oculta el producto del catálogo y de la lista de ventas sin borrar su historial de transacciones.")
             col_sel, col_acc = st.columns([4, 2])
-            
+
             opciones_estado = {
                 f"{p['sku']} - {p['nombre']} [{'ACTIVO' if p.get('activo', True) else 'DADO DE BAJA'}]": p
                 for p in todos_los_productos
@@ -618,18 +648,18 @@ def main():
         movimientos = obtener_historial_movimientos()
         if movimientos:
             df_mov = pd.DataFrame(movimientos)
-            
+
             fechas = pd.to_datetime(df_mov["fecha"])
             if fechas.dt.tz is None:
                 fechas = fechas.dt.tz_localize("UTC")
             df_mov["fecha"] = fechas.dt.tz_convert("America/Santiago").dt.strftime("%d/%m/%Y %H:%M")
-            
+
             df_mov["tipo"] = df_mov["tipo"].apply(
                 lambda x: "ENTRADA" if x == "ENTRADA" else "SALIDA"
             )
-            
+
             df_mov["cantidad_fmt"] = df_mov["cantidad"].astype(str) + " " + df_mov["unidad_medida"]
-            
+
             df_mov_vista = df_mov[["fecha", "sku", "nombre", "tipo", "cantidad_fmt"]].rename(columns={
                 "fecha": "FECHA / HORA",
                 "sku": "SKU",
@@ -637,10 +667,10 @@ def main():
                 "tipo": "OPERACIÓN",
                 "cantidad_fmt": "CANTIDAD"
             })
-            
+
             html_mov = df_mov_vista.to_html(index=False, escape=False, classes="tabla-tema")
             st.markdown(f'<div class="tabla-contenedor">{html_mov}</div>', unsafe_allow_html=True)
-            
+
             st.write("")
             csv_mov = df_mov_vista.to_csv(index=False).encode('utf-8')
             st.download_button(

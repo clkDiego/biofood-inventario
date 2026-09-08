@@ -66,64 +66,31 @@ MAPA_MIGRACION_CATEGORIAS = {
     "Bebidas Funcionales & Control de Peso": "Bebidas"
 }
 
-def inyectar_estilos(tema):
-    if tema == "Claro":
-        cfg = {
-            "bg_app": "#F1F5F9",
-            "bg_sidebar": "#FFFFFF",
-            "border_sidebar": "#E2E8F0",
-            "text_main": "#0F172A",
-            "text_sub": "#475569",
-            "card_bg": "#FFFFFF",
-            "card_border": "1px solid #CBD5E1",
-            "card_shadow": "0 2px 6px rgba(0, 0, 0, 0.05)",
-            "banner_bg": "#FEF2F2",
-            "banner_border": "1px solid #FCA5A5",
-            "banner_border_l": "5px solid #DC2626",
-            "banner_text": "#991B1B",
-            "kpi_total": "#0F172A",
-            "kpi_money": "#0284C7",
-            "kpi_ok": "#059669",
-            "kpi_alert": "#D97706"
-        }
-    elif tema == "Alto Contraste":
-        cfg = {
-            "bg_app": "#000000",
-            "bg_sidebar": "#000000",
-            "border_sidebar": "#FFFFFF",
-            "text_main": "#FFFFFF",
-            "text_sub": "#E2E8F0",
-            "card_bg": "#050505",
-            "card_border": "2px solid #FFFFFF",
-            "card_shadow": "none",
-            "banner_bg": "#1A0000",
-            "banner_border": "2px solid #FF3B30",
-            "banner_border_l": "6px solid #FF3B30",
-            "banner_text": "#FF8080",
-            "kpi_total": "#FFFFFF",
-            "kpi_money": "#00E5FF",
-            "kpi_ok": "#00FF66",
-            "kpi_alert": "#FF3333"
-        }
-    else:  # Oscuro
-        cfg = {
-            "bg_app": "#0B0F17",
-            "bg_sidebar": "#111827",
-            "border_sidebar": "#1F2937",
-            "text_main": "#F8FAFC",
-            "text_sub": "#94A3B8",
-            "card_bg": "#141C2E",
-            "card_border": "1px solid #1E293B",
-            "card_shadow": "0 4px 14px 0 rgba(0, 0, 0, 0.35)",
-            "banner_bg": "linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%)",
-            "banner_border": "1px solid rgba(239, 68, 68, 0.25)",
-            "banner_border_l": "4px solid #EF4444",
-            "banner_text": "#FCA5A5",
-            "kpi_total": "#F8FAFC",
-            "kpi_money": "#38BDF8",
-            "kpi_ok": "#10B981",
-            "kpi_alert": "#F97316"
-        }
+def inyectar_estilos(alto_contraste=False):
+    if alto_contraste:
+        bg_app = "#000000"
+        bg_card = "#0A0A0A"
+        border_card = "2px solid #FFFFFF"
+        text_primary = "#FFFFFF"
+        text_muted = "#D1D5DB"
+        val_money = "#00E5FF"
+        val_ok = "#00FF66"
+        val_alert = "#FF3333"
+        banner_bg = "#1A0000"
+        banner_border = "2px solid #FF3B30"
+        banner_text = "#FF9999"
+    else:
+        bg_app = "#0B0F17"
+        bg_card = "#141C2E"
+        border_card = "1px solid #1E293B"
+        text_primary = "#F8FAFC"
+        text_muted = "#94A3B8"
+        val_money = "#38BDF8"
+        val_ok = "#10B981"
+        val_alert = "#F97316"
+        banner_bg = "linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%)"
+        banner_border = "1px solid rgba(239, 68, 68, 0.25)"
+        banner_text = "#FCA5A5"
 
     st.markdown(f"""
         <style>
@@ -133,28 +100,26 @@ def inyectar_estilos(tema):
                 font-family: 'Plus Jakarta Sans', sans-serif;
             }}
 
-            .stApp {{
-                background-color: {cfg['bg_app']} !important;
+            .stApp, [data-testid="stAppViewContainer"] {{
+                background-color: {bg_app} !important;
             }}
 
             section[data-testid="stSidebar"] {{
-                background-color: {cfg['bg_sidebar']} !important;
-                border-right: 1px solid {cfg['border_sidebar']} !important;
+                background-color: {bg_app} !important;
+                border-right: 1px solid #1F2937 !important;
             }}
 
-            header[data-testid="stHeader"] {{
-                background-color: transparent !important;
+            /* Asegurar que los textos principales sean siempre nítidos y claros */
+            h1, h2, h3, h4, [data-testid="stMarkdownContainer"] p {{
+                color: {text_primary} !important;
             }}
 
-            h1, h2, h3, h4, p, span, label, [data-testid="stWidgetLabel"] p {{
-                color: {cfg['text_main']} !important;
-            }}
-
+            /* Banner Alerta */
             .critical-banner {{
-                background: {cfg['banner_bg']} !important;
-                border: {cfg['banner_border']} !important;
-                border-left: {cfg['banner_border_l']} !important;
-                color: {cfg['banner_text']} !important;
+                background: {banner_bg} !important;
+                border: {banner_border} !important;
+                border-left: 5px solid #EF4444 !important;
+                color: {banner_text} !important;
                 padding: 14px 18px;
                 border-radius: 8px;
                 font-weight: 700;
@@ -162,16 +127,16 @@ def inyectar_estilos(tema):
                 margin-bottom: 20px;
             }}
 
+            /* Tarjetas de KPIs */
             .kpi-container {{
-                background: {cfg['card_bg']} !important;
-                border: {cfg['card_border']} !important;
+                background: {bg_card} !important;
+                border: {border_card} !important;
                 border-radius: 12px;
                 padding: 16px 18px;
-                box-shadow: {cfg['card_shadow']};
-                transition: transform 0.15s ease, border-color 0.15s ease;
+                box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.35);
             }}
             .kpi-title {{
-                color: {cfg['text_sub']} !important;
+                color: {text_muted} !important;
                 font-size: 0.72rem;
                 font-weight: 700;
                 letter-spacing: 0.07em;
@@ -186,14 +151,15 @@ def inyectar_estilos(tema):
             }}
             .kpi-subtext {{
                 font-size: 0.76rem;
-                color: {cfg['text_sub']} !important;
+                color: {text_muted} !important;
             }}
 
-            .kpi-val-total {{ color: {cfg['kpi_total']} !important; }}
-            .kpi-val-money {{ color: {cfg['kpi_money']} !important; }}
-            .kpi-val-ok {{ color: {cfg['kpi_ok']} !important; }}
-            .kpi-val-alert {{ color: {cfg['kpi_alert']} !important; }}
+            .kpi-val-total {{ color: {text_primary} !important; }}
+            .kpi-val-money {{ color: {val_money} !important; }}
+            .kpi-val-ok {{ color: {val_ok} !important; }}
+            .kpi-val-alert {{ color: {val_alert} !important; }}
 
+            /* Botones de acción */
             div.stButton > button:first-child {{
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
                 color: #FFFFFF !important;
@@ -202,6 +168,10 @@ def inyectar_estilos(tema):
                 font-weight: 700 !important;
                 padding: 0.55rem 1rem !important;
                 box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25) !important;
+            }}
+            div.stButton > button:first-child:hover {{
+                background: linear-gradient(135deg, #FB923C 0%, #F97316 100%) !important;
+                color: #FFFFFF !important;
             }}
 
             div[role="radiogroup"] {{
@@ -221,8 +191,8 @@ def main():
         initial_sidebar_state="expanded"
     )
 
-    if "tema_visual" not in st.session_state:
-        st.session_state["tema_visual"] = "Oscuro"
+    if "alto_contraste" not in st.session_state:
+        st.session_state["alto_contraste"] = False
 
     init_db()
 
@@ -242,22 +212,25 @@ def main():
                 st.image(LOGO_PATH, width=130)
 
         st.markdown("<h2 style='text-align: center; margin-top: 5px; margin-bottom: 0px;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
         st.divider()
 
-        # Selector de Tema Visual
-        opciones_tema = ["Oscuro", "Claro", "Alto Contraste"]
-        idx_tema = opciones_tema.index(st.session_state["tema_visual"]) if st.session_state["tema_visual"] in opciones_tema else 0
-        tema_elegido = st.selectbox("Apariencia del Sistema:", opciones_tema, index=idx_tema)
-        if tema_elegido != st.session_state["tema_visual"]:
-            st.session_state["tema_visual"] = tema_elegido
+        # Selector de Modo de Visualización (Solo las dos opciones que funcionan excelente)
+        st.markdown("### Visualización")
+        contraste_activo = st.checkbox(
+            "Modo Alto Contraste",
+            value=st.session_state["alto_contraste"],
+            help="Activa bordes reforzados y fondo negro puro para máxima legibilidad en bodega."
+        )
+        if contraste_activo != st.session_state["alto_contraste"]:
+            st.session_state["alto_contraste"] = contraste_activo
             st.rerun()
 
         st.divider()
 
         st.markdown("### Acceso Administrador")
         if not st.session_state["es_admin"]:
-            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10)
+            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10, key="admin_pin_input")
             if st.button("Desbloquear Edición", use_container_width=True):
                 if pin_input == ADMIN_PIN:
                     st.session_state["es_admin"] = True
@@ -330,7 +303,7 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
-    inyectar_estilos(st.session_state["tema_visual"])
+    inyectar_estilos(st.session_state["alto_contraste"])
 
     # --- CABECERA PRINCIPAL ---
     if existe_logo:

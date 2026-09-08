@@ -14,7 +14,9 @@ def get_connection():
         return psycopg2.connect(DATABASE_URL, sslmode="require")
     return sqlite3.connect("inventario.db")
 
+@st.cache_resource
 def init_db():
+    """Se ejecuta exactamente una sola vez por ciclo del servidor, evitando chequeos repetidos a Supabase."""
     conn = get_connection()
     try:
         cursor = conn.cursor()
@@ -43,7 +45,6 @@ def init_db():
                     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-            # Migracion automatica de nombres antiguos a nuevos
             cursor.execute("UPDATE productos SET categoria = 'Polvos' WHERE categoria = 'Proteínas & Gainers';")
             cursor.execute("UPDATE productos SET categoria = 'Bebidas' WHERE categoria = 'Bebidas Funcionales & Control de Peso';")
         else:
@@ -86,6 +87,39 @@ def init_db():
     finally:
         conn.close()
 
+@st.cache_data(ttl=300)
+def obtener_todos_productos():
+    """Almacena el catalogo en memoria RAM. Evita consultas remotas en cada clic."""
+    conn = get_connection()
+    try:
+        if DATABASE_URL:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT * FROM productos ORDER BY id DESC;")
+            filas = cursor.fetchall()
+            cursor.close()
+            for f in filas:
+                if f.get("activo") is None:
+                    f["activo"] = True
+            return filas
+        else:
+            cursor = conn.cursor()
+            query = "SELECT id, sku, nombre, categoria, unidad_medida, precio_costo, precio_venta, stock_actual, stock_minimo, activo FROM productos ORDER BY id DESC;"
+            cursor.execute(query)
+            filas = cursor.fetchall()
+            cursor.close()
+            columnas = ["id", "sku", "nombre", "categoria", "unidad_medida", "precio_costo", "precio_venta", "stock_actual", "stock_minimo", "activo"]
+            resultado = []
+            for fila in filas:
+                item = dict(zip(columnas, fila))
+                item["activo"] = bool(item.get("activo", True))
+                resultado.append(item)
+            return resultado
+    except Exception as e:
+        print(f"Error al obtener productos: {e}")
+        return []
+    finally:
+        conn.close()
+
 def registrar_producto(sku, nombre, categoria, unidad_medida, precio_costo, precio_venta, stock_actual, stock_minimo):
     conn = get_connection()
     try:
@@ -104,47 +138,11 @@ def registrar_producto(sku, nombre, categoria, unidad_medida, precio_costo, prec
             cursor.execute(query, (sku, nombre, categoria, unidad_medida, precio_costo, precio_venta, stock_actual, stock_minimo))
         conn.commit()
         cursor.close()
+        st.cache_data.clear()
         return True
     except Exception as e:
         print(f"Error al registrar producto: {e}")
         return False
-    finally:
-        conn.close()
-
-def obtener_todos_productos(solo_activos=False):
-    conn = get_connection()
-    try:
-        if DATABASE_URL:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            if solo_activos:
-                cursor.execute("SELECT * FROM productos WHERE activo IS NOT FALSE ORDER BY id DESC;")
-            else:
-                cursor.execute("SELECT * FROM productos ORDER BY id DESC;")
-            filas = cursor.fetchall()
-            cursor.close()
-            for f in filas:
-                if f.get("activo") is None:
-                    f["activo"] = True
-            return filas
-        else:
-            cursor = conn.cursor()
-            query = "SELECT id, sku, nombre, categoria, unidad_medida, precio_costo, precio_venta, stock_actual, stock_minimo, activo FROM productos"
-            if solo_activos:
-                query += " WHERE activo = 1"
-            query += " ORDER BY id DESC;"
-            cursor.execute(query)
-            filas = cursor.fetchall()
-            cursor.close()
-            columnas = ["id", "sku", "nombre", "categoria", "unidad_medida", "precio_costo", "precio_venta", "stock_actual", "stock_minimo", "activo"]
-            resultado = []
-            for fila in filas:
-                item = dict(zip(columnas, fila))
-                item["activo"] = bool(item.get("activo", True))
-                resultado.append(item)
-            return resultado
-    except Exception as e:
-        print(f"Error al obtener productos: {e}")
-        return []
     finally:
         conn.close()
 
@@ -158,6 +156,7 @@ def cambiar_estado_producto(producto_id, nuevo_estado):
             cursor.execute("UPDATE productos SET activo = ? WHERE id = ?;", (1 if nuevo_estado else 0, producto_id))
         conn.commit()
         cursor.close()
+        st.cache_data.clear()
         return True
     except Exception as e:
         print(f"Error al cambiar estado de producto: {e}")
@@ -196,6 +195,7 @@ def actualizar_stock_transaccional(producto_id, tipo, cantidad):
 
         conn.commit()
         cursor.close()
+        st.cache_data.clear()
         return True
     except Exception as e:
         print(f"Error en movimiento transaccional: {e}")
@@ -213,6 +213,7 @@ def actualizar_stock_minimo(producto_id, nuevo_minimo):
             cursor.execute("UPDATE productos SET stock_minimo = ? WHERE id = ?;", (nuevo_minimo, producto_id))
         conn.commit()
         cursor.close()
+        st.cache_data.clear()
         return True
     except Exception as e:
         print(f"Error al actualizar stock mínimo: {e}")
@@ -238,6 +239,7 @@ def actualizar_producto_desde_tabla(sku, categoria, unidad_medida, precio_venta,
             """, (categoria, unidad_medida, precio_venta, stock_actual, stock_minimo, sku))
         conn.commit()
         cursor.close()
+        st.cache_data.clear()
         return True
     except Exception as e:
         print(f"Error al actualizar fila de producto: {e}")
@@ -258,6 +260,7 @@ def generar_sku_sugerido(categoria):
     conteo = sum(1 for p in productos if p.get("categoria") == categoria) + 1
     return f"{pref}-{conteo:03d}"
 
+@st.cache_data(ttl=300)
 def obtener_historial_movimientos(limite=100):
     conn = get_connection()
     try:

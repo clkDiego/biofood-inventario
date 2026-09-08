@@ -66,36 +66,91 @@ MAPA_MIGRACION_CATEGORIAS = {
     "Bebidas Funcionales & Control de Peso": "Bebidas"
 }
 
-def inyectar_estilos():
+def inyectar_estilos(es_modo_claro=False):
+    if es_modo_claro:
+        bg_app = "#F8FAFC"
+        bg_sidebar = "#FFFFFF"
+        border_sidebar = "#E2E8F0"
+        text_title = "#0F172A"
+        text_body = "#334155"
+        text_muted = "#64748B"
+        bg_card = "#FFFFFF"
+        border_card = "1px solid #E2E8F0"
+        card_shadow = "0 1px 3px 0 rgba(0, 0, 0, 0.08)"
+        banner_bg = "#FEF2F2"
+        banner_border = "1px solid #FCA5A5"
+        banner_border_l = "4px solid #DC2626"
+        banner_text = "#991B1B"
+        input_bg = "#FFFFFF"
+        input_border = "#CBD5E1"
+        input_text = "#0F172A"
+        kpi_total = "#0F172A"
+        kpi_money = "#0284C7"
+        kpi_ok = "#059669"
+        kpi_alert = "#D97706"
+    else:
+        bg_app = "#0B0F17"
+        bg_sidebar = "#111827"
+        border_sidebar = "#1F2937"
+        text_title = "#F1F5F9"
+        text_body = "#CBD5E1"
+        text_muted = "#94A3B8"
+        bg_card = "#141C2E"
+        border_card = "1px solid #1E293B"
+        card_shadow = "0 4px 12px 0 rgba(0, 0, 0, 0.3)"
+        banner_bg = "rgba(239, 68, 68, 0.12)"
+        banner_border = "1px solid rgba(239, 68, 68, 0.25)"
+        banner_border_l = "4px solid #EF4444"
+        banner_text = "#FCA5A5"
+        input_bg = "#161F30"
+        input_border = "#334155"
+        input_text = "#F8FAFC"
+        kpi_total = "#F8FAFC"
+        kpi_money = "#38BDF8"
+        kpi_ok = "#10B981"
+        kpi_alert = "#F97316"
+
     st.markdown(f"""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
+            
             html, body, [class*="css"] {{
                 font-family: 'Plus Jakarta Sans', sans-serif;
                 font-weight: 400;
             }}
 
+            .stApp, [data-testid="stAppViewContainer"] {{
+                background-color: {bg_app} !important;
+            }}
+
+            section[data-testid="stSidebar"], [data-testid="stSidebarContent"] {{
+                background-color: {bg_sidebar} !important;
+                border-right: 1px solid {border_sidebar} !important;
+            }}
+
+            header[data-testid="stHeader"] {{
+                background-color: transparent !important;
+            }}
+
             h1 {{
-                color: var(--text-color) !important;
+                color: {text_title} !important;
                 font-weight: 600 !important;
                 letter-spacing: -0.02em;
             }}
             h2, h3, h4 {{
-                color: var(--text-color) !important;
+                color: {text_title} !important;
                 font-weight: 600 !important;
             }}
-            p, span, label, [data-testid="stWidgetLabel"] p {{
-                color: var(--text-color) !important;
+            p, span, label, div, [data-testid="stWidgetLabel"] p {{
+                color: {text_body} !important;
                 font-weight: 400;
             }}
 
-            /* Banner Alerta Critica */
             .critical-banner {{
-                background: rgba(239, 68, 68, 0.12) !important;
-                border: 1px solid rgba(239, 68, 68, 0.35) !important;
-                border-left: 4px solid #EF4444 !important;
-                color: var(--text-color) !important;
+                background: {banner_bg} !important;
+                border: {banner_border} !important;
+                border-left: {banner_border_l} !important;
+                color: {banner_text} !important;
                 padding: 12px 16px;
                 border-radius: 6px;
                 font-weight: 500;
@@ -103,17 +158,15 @@ def inyectar_estilos():
                 margin-bottom: 20px;
             }}
 
-            /* Tarjetas KPIs */
             .kpi-container {{
-                background: var(--secondary-background-color) !important;
-                border: 1px solid rgba(128, 128, 128, 0.25) !important;
+                background: {bg_card} !important;
+                border: {border_card} !important;
                 border-radius: 10px;
                 padding: 16px 18px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                box-shadow: {card_shadow};
             }}
             .kpi-title {{
-                color: var(--text-color) !important;
-                opacity: 0.6;
+                color: {text_muted} !important;
                 font-size: 0.72rem;
                 font-weight: 600;
                 letter-spacing: 0.05em;
@@ -128,17 +181,15 @@ def inyectar_estilos():
             }}
             .kpi-subtext {{
                 font-size: 0.78rem;
-                color: var(--text-color) !important;
-                opacity: 0.6;
+                color: {text_muted} !important;
                 font-weight: 400;
             }}
 
-            .kpi-val-total {{ color: var(--text-color) !important; }}
-            .kpi-val-money {{ color: #0284C7 !important; }}
-            .kpi-val-ok {{ color: #059669 !important; }}
-            .kpi-val-alert {{ color: #D97706 !important; }}
+            .kpi-val-total {{ color: {kpi_total} !important; }}
+            .kpi-val-money {{ color: {kpi_money} !important; }}
+            .kpi-val-ok {{ color: {kpi_ok} !important; }}
+            .kpi-val-alert {{ color: {kpi_alert} !important; }}
 
-            /* Botones de accion (color de marca fijo en ambos temas) */
             div.stButton > button:first-child {{
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
                 color: #FFFFFF !important;
@@ -153,41 +204,51 @@ def inyectar_estilos():
                 color: #FFFFFF !important;
             }}
 
-            div[role="radiogroup"] {{
-                gap: 16px;
-            }}
-
-            /* Tabla HTML propia (catalogo modo consulta / historial de auditoria) */
             .tabla-contenedor {{
+                width: 100%;
                 overflow-x: auto;
-                border: 1px solid rgba(128, 128, 128, 0.25);
-                border-radius: 10px;
+                margin-top: 10px;
+                border-radius: 8px;
+                border: 1px solid {border_sidebar};
             }}
             .tabla-tema {{
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 0.9rem;
+                font-size: 0.88rem;
+                text-align: left;
             }}
             .tabla-tema th {{
-                background-color: var(--secondary-background-color) !important;
-                color: var(--text-color) !important;
-                opacity: 0.85;
-                text-align: left;
-                padding: 10px 12px;
-                border-bottom: 2px solid rgba(128, 128, 128, 0.25);
+                background-color: {bg_card} !important;
+                color: {text_muted} !important;
+                padding: 10px 14px;
+                border-bottom: 2px solid {border_sidebar};
                 text-transform: uppercase;
                 font-size: 0.72rem;
                 font-weight: 600;
-                white-space: nowrap;
+                letter-spacing: 0.05em;
             }}
             .tabla-tema td {{
-                color: var(--text-color) !important;
-                padding: 8px 12px;
-                border-bottom: 1px solid rgba(128, 128, 128, 0.15);
-                white-space: nowrap;
+                background-color: {bg_app} !important;
+                color: {text_body} !important;
+                padding: 10px 14px;
+                border-bottom: 1px solid {border_sidebar};
+            }}
+            .tabla-tema tr:last-child td {{
+                border-bottom: none;
             }}
             .tabla-tema tr:hover td {{
-                background-color: var(--secondary-background-color) !important;
+                background-color: {bg_card} !important;
+            }}
+
+            input, select, textarea, div[data-baseweb="select"] > div {{
+                background-color: {input_bg} !important;
+                color: {input_text} !important;
+                border-color: {input_border} !important;
+                font-weight: 400;
+            }}
+
+            div[role="radiogroup"] {{
+                gap: 16px;
             }}
         </style>
     """, unsafe_allow_html=True)
@@ -203,14 +264,19 @@ def main():
         initial_sidebar_state="expanded"
     )
 
+    if "tema_visual" not in st.session_state:
+        st.session_state["tema_visual"] = "Oscuro"
+
+    # Se ejecuta solo una vez al iniciar la sesion
     init_db()
 
     ADMIN_PIN = st.secrets.get("ADMIN_PIN", "2817")
     if "es_admin" not in st.session_state:
         st.session_state["es_admin"] = False
 
-    productos_activos = obtener_todos_productos(solo_activos=True)
-    todos_los_productos = obtener_todos_productos(solo_activos=False)
+    # Consulta unica a memoria RAM instantanea
+    todos_los_productos = obtener_todos_productos()
+    productos_activos = [p for p in todos_los_productos if p.get("activo", True)]
     datos = procesar_metricas_globales(productos_activos)
 
     # --- BARRA LATERAL ---
@@ -222,6 +288,15 @@ def main():
 
         st.markdown("<h2 style='text-align: center; margin-top: 5px; margin-bottom: 0px; font-size: 1.25rem;'>BIOFOOD NUTRITION</h2>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; font-size: 0.82rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
+        st.divider()
+
+        opciones_tema = ["Oscuro", "Claro"]
+        idx_tema = opciones_tema.index(st.session_state["tema_visual"]) if st.session_state["tema_visual"] in opciones_tema else 0
+        tema_elegido = st.radio("Tema visual:", opciones_tema, index=idx_tema, horizontal=True)
+        if tema_elegido != st.session_state["tema_visual"]:
+            st.session_state["tema_visual"] = tema_elegido
+            st.rerun()
+
         st.divider()
 
         st.markdown("### Acceso Administrador")
@@ -245,13 +320,13 @@ def main():
 
         if st.session_state["es_admin"]:
             st.markdown("**REGISTRAR NUEVO SUPLEMENTO**")
-
+            
             categoria_sel = st.selectbox("1. Línea de Producto:", list(PRODUCTOS_BIOFOOD.keys()))
             sugerencias_cat = PRODUCTOS_BIOFOOD[categoria_sel]
             nombres_sugeridos = [item["nombre"] for item in sugerencias_cat] + ["Ingresar otro suplemento manual..."]
-
+            
             sel_nombre = st.selectbox("2. Catálogo Sugerido:", nombres_sugeridos)
-
+            
             if sel_nombre == "Ingresar otro suplemento manual...":
                 nombre_final = st.text_input("Nombre comercial:", placeholder="Ej: Creatina Micronizada 300g").strip()
                 unidad_default = "Frasco" if categoria_sel == "Cápsulas" else "Pote"
@@ -274,7 +349,7 @@ def main():
 
             with st.form("form_registro_biofood", clear_on_submit=True):
                 precio_venta = st.number_input("Precio Venta Público ($)", min_value=0, step=1000, value=venta_default)
-
+                
                 c_stock, c_min = st.columns(2)
                 stock_actual = c_stock.number_input("Stock Inicial", min_value=0, step=1, value=12)
                 stock_minimo = c_min.number_input("Stock Mínimo", min_value=0, step=1, value=3)
@@ -299,7 +374,7 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
-    inyectar_estilos()
+    inyectar_estilos(es_modo_claro=(st.session_state["tema_visual"] == "Claro"))
 
     # --- CABECERA PRINCIPAL ---
     st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
@@ -420,11 +495,11 @@ def main():
 
         columnas_deseadas = ["sku", "nombre", "categoria", "unidad_medida", "precio_venta", "stock_actual", "stock_minimo", "estado"]
         columnas_presentes = [c for c in columnas_deseadas if c in df_filtrado.columns]
-
+        
         df_vista = df_filtrado[columnas_presentes]
         nombres_cabecera = {
-            "sku": "SKU", "nombre": "PRODUCTO", "categoria": "LÍNEA",
-            "unidad_medida": "ENVASE", "precio_venta": "VENTA ($)",
+            "sku": "SKU", "nombre": "PRODUCTO", "categoria": "LÍNEA", 
+            "unidad_medida": "ENVASE", "precio_venta": "VENTA ($)", 
             "stock_actual": "STOCK", "stock_minimo": "MÍNIMO", "estado": "ESTADO"
         }
         df_vista = df_vista.rename(columns=nombres_cabecera)
@@ -496,7 +571,7 @@ def main():
                     pre_edit = int(row["VENTA ($)"])
                     stk_edit = int(row["STOCK"])
                     min_edit = int(row["MÍNIMO"])
-
+                    
                     if (cat_edit, env_edit, pre_edit, stk_edit, min_edit) != orig:
                         cambios_detectados.append({
                             "sku": sku_actual,
@@ -526,7 +601,6 @@ def main():
                     else:
                         st.error("Hubo un error al sincronizar algunos cambios en Supabase.")
         else:
-            # Vista Consulta: Render HTML directo adaptado al 100% al tema visual
             html_tabla = df_vista.to_html(index=False, escape=False, classes="tabla-tema")
             st.markdown(f'<div class="tabla-contenedor">{html_tabla}</div>', unsafe_allow_html=True)
 
@@ -552,11 +626,11 @@ def main():
                 f"{p['sku']} — {p['nombre']} (Stock actual: {p['stock_actual']} {p.get('unidad_medida', '')})": p["id"]
                 for p in productos_activos
             }
-
+            
             prod_sel = st.selectbox("1. Seleccionar Suplemento:", list(opciones.keys()))
 
             c_tipo, c_cant, c_btn = st.columns([3, 2, 2])
-
+            
             with c_tipo:
                 tipo_display = st.radio(
                     "2. Operación:",
@@ -591,7 +665,7 @@ def main():
             }
             item_elegido_str = c_prod_min.selectbox("Suplemento a modificar:", list(opciones_min.keys()), key="sb_minimo")
             item_datos = opciones_min[item_elegido_str]
-
+            
             nuevo_valor_min = c_val_min.number_input(
                 "Nuevo Mínimo:",
                 min_value=0,
@@ -599,7 +673,7 @@ def main():
                 value=int(item_datos["stock_minimo"]),
                 key="num_input_min"
             )
-
+            
             c_btn_min.write("")
             c_btn_min.write("")
             if c_btn_min.button("Actualizar Mínimo", use_container_width=True, type="primary"):
@@ -615,7 +689,7 @@ def main():
         with st.expander("Dar de Baja / Reactivar Suplemento (Solo Admin)"):
             st.caption("Dar de baja oculta el producto del catálogo y de la lista de ventas sin borrar su historial de transacciones.")
             col_sel, col_acc = st.columns([4, 2])
-
+            
             opciones_estado = {
                 f"{p['sku']} - {p['nombre']} [{'ACTIVO' if p.get('activo', True) else 'DADO DE BAJA'}]": p
                 for p in todos_los_productos
@@ -648,18 +722,18 @@ def main():
         movimientos = obtener_historial_movimientos()
         if movimientos:
             df_mov = pd.DataFrame(movimientos)
-
+            
             fechas = pd.to_datetime(df_mov["fecha"])
             if fechas.dt.tz is None:
                 fechas = fechas.dt.tz_localize("UTC")
             df_mov["fecha"] = fechas.dt.tz_convert("America/Santiago").dt.strftime("%d/%m/%Y %H:%M")
-
+            
             df_mov["tipo"] = df_mov["tipo"].apply(
                 lambda x: "ENTRADA" if x == "ENTRADA" else "SALIDA"
             )
-
+            
             df_mov["cantidad_fmt"] = df_mov["cantidad"].astype(str) + " " + df_mov["unidad_medida"]
-
+            
             df_mov_vista = df_mov[["fecha", "sku", "nombre", "tipo", "cantidad_fmt"]].rename(columns={
                 "fecha": "FECHA / HORA",
                 "sku": "SKU",
@@ -667,10 +741,10 @@ def main():
                 "tipo": "OPERACIÓN",
                 "cantidad_fmt": "CANTIDAD"
             })
-
+            
             html_mov = df_mov_vista.to_html(index=False, escape=False, classes="tabla-tema")
             st.markdown(f'<div class="tabla-contenedor">{html_mov}</div>', unsafe_allow_html=True)
-
+            
             st.write("")
             csv_mov = df_mov_vista.to_csv(index=False).encode('utf-8')
             st.download_button(

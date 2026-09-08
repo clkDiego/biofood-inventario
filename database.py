@@ -214,54 +214,28 @@ def actualizar_stock_minimo(producto_id, nuevo_minimo):
     finally:
         conn.close()
 
-def actualizar_producto_datos(producto_id, nuevo_nombre, nuevo_precio):
-    """Actualiza el nombre comercial y el precio de venta de un producto por su ID."""
+def actualizar_producto_desde_tabla(sku, categoria, unidad_medida, precio_venta, stock_actual, stock_minimo):
+    """Actualiza todos los campos editables desde la tabla de inventario."""
     conn = get_connection()
     try:
         cursor = conn.cursor()
         if DATABASE_URL:
             cursor.execute("""
                 UPDATE productos 
-                SET nombre = %s, precio_venta = %s 
-                WHERE id = %s;
-            """, (nuevo_nombre, nuevo_precio, producto_id))
-        else:
-            cursor.execute("""
-                UPDATE productos 
-                SET nombre = ?, precio_venta = ? 
-                WHERE id = ?;
-            """, (nuevo_nombre, nuevo_precio, producto_id))
-        conn.commit()
-        cursor.close()
-        return True
-    except Exception as e:
-        print(f"Error al actualizar datos de producto: {e}")
-        return False
-    finally:
-        conn.close()
-
-def actualizar_producto_por_sku(sku, nuevo_nombre, nuevo_precio):
-    """Actualiza el nombre comercial y precio de venta directamente desde ediciones en tabla por SKU."""
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        if DATABASE_URL:
-            cursor.execute("""
-                UPDATE productos 
-                SET nombre = %s, precio_venta = %s 
+                SET categoria = %s, unidad_medida = %s, precio_venta = %s, stock_actual = %s, stock_minimo = %s
                 WHERE sku = %s;
-            """, (nuevo_nombre, nuevo_precio, sku))
+            """, (categoria, unidad_medida, precio_venta, stock_actual, stock_minimo, sku))
         else:
             cursor.execute("""
                 UPDATE productos 
-                SET nombre = ?, precio_venta = ? 
+                SET categoria = ?, unidad_medida = ?, precio_venta = ?, stock_actual = ?, stock_minimo = ?
                 WHERE sku = ?;
-            """, (nuevo_nombre, nuevo_precio, sku))
+            """, (categoria, unidad_medida, precio_venta, stock_actual, stock_minimo, sku))
         conn.commit()
         cursor.close()
         return True
     except Exception as e:
-        print(f"Error al actualizar producto por SKU: {e}")
+        print(f"Error al actualizar fila de producto: {e}")
         return False
     finally:
         conn.close()

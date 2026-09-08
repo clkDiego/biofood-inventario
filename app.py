@@ -190,7 +190,10 @@ def inyectar_estilos(es_modo_claro=False):
             .kpi-val-ok {{ color: {kpi_ok} !important; }}
             .kpi-val-alert {{ color: {kpi_alert} !important; }}
 
-            div.stButton > button:first-child {{
+            /* Botones de acción Y Botones de Descarga (corrige el bloque negro) */
+            div.stButton > button,
+            div.stDownloadButton > button,
+            [data-testid="stDownloadButton"] > button {{
                 background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
                 color: #FFFFFF !important;
                 border: none !important;
@@ -199,11 +202,22 @@ def inyectar_estilos(es_modo_claro=False):
                 padding: 0.5rem 1rem !important;
                 box-shadow: 0 2px 6px rgba(249, 115, 22, 0.2) !important;
             }}
-            div.stButton > button:first-child:hover {{
+            div.stButton > button:hover,
+            div.stDownloadButton > button:hover,
+            [data-testid="stDownloadButton"] > button:hover {{
                 background: linear-gradient(135deg, #FB923C 0%, #F97316 100%) !important;
                 color: #FFFFFF !important;
             }}
 
+            /* Contenedor estético para la tabla de Administrador */
+            [data-testid="stDataEditor"] {{
+                border-radius: 8px !important;
+                overflow: hidden !important;
+                border: 1px solid #1E293B !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            }}
+
+            /* Tabla HTML Sincronizada (Modo Consulta) */
             .tabla-contenedor {{
                 width: 100%;
                 overflow-x: auto;
@@ -267,14 +281,12 @@ def main():
     if "tema_visual" not in st.session_state:
         st.session_state["tema_visual"] = "Oscuro"
 
-    # Se ejecuta solo una vez al iniciar la sesion
     init_db()
 
     ADMIN_PIN = st.secrets.get("ADMIN_PIN", "2817")
     if "es_admin" not in st.session_state:
         st.session_state["es_admin"] = False
 
-    # Consulta unica a memoria RAM instantanea
     todos_los_productos = obtener_todos_productos()
     productos_activos = [p for p in todos_los_productos if p.get("activo", True)]
     datos = procesar_metricas_globales(productos_activos)
@@ -742,8 +754,11 @@ def main():
                 "cantidad_fmt": "CANTIDAD"
             })
             
-            html_mov = df_mov_vista.to_html(index=False, escape=False, classes="tabla-tema")
-            st.markdown(f'<div class="tabla-contenedor">{html_mov}</div>', unsafe_allow_html=True)
+            if st.session_state["es_admin"]:
+                st.dataframe(df_mov_vista, use_container_width=True, hide_index=True)
+            else:
+                html_mov = df_mov_vista.to_html(index=False, escape=False, classes="tabla-tema")
+                st.markdown(f'<div class="tabla-contenedor">{html_mov}</div>', unsafe_allow_html=True)
             
             st.write("")
             csv_mov = df_mov_vista.to_csv(index=False).encode('utf-8')

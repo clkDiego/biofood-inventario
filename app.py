@@ -66,117 +66,88 @@ MAPA_MIGRACION_CATEGORIAS = {
     "Bebidas Funcionales & Control de Peso": "Bebidas"
 }
 
-def inyectar_estilos(alto_contraste=False):
-    if alto_contraste:
-        bg_app = "#000000"
-        bg_card = "#0A0A0A"
-        border_card = "2px solid #FFFFFF"
-        text_primary = "#FFFFFF"
-        text_muted = "#D1D5DB"
-        val_money = "#00E5FF"
-        val_ok = "#00FF66"
-        val_alert = "#FF3333"
-        banner_bg = "#1A0000"
-        banner_border = "2px solid #FF3B30"
-        banner_text = "#FF9999"
-    else:
-        bg_app = "#0B0F17"
-        bg_card = "#141C2E"
-        border_card = "1px solid #1E293B"
-        text_primary = "#F8FAFC"
-        text_muted = "#94A3B8"
-        val_money = "#38BDF8"
-        val_ok = "#10B981"
-        val_alert = "#F97316"
-        banner_bg = "linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%)"
-        banner_border = "1px solid rgba(239, 68, 68, 0.25)"
-        banner_text = "#FCA5A5"
-
-    st.markdown(f"""
+def inyectar_estilos():
+    st.markdown("""
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
             
-            html, body, [class*="css"] {{
+            html, body, [class*="css"] {
                 font-family: 'Plus Jakarta Sans', sans-serif;
-            }}
+            }
 
-            .stApp, [data-testid="stAppViewContainer"] {{
-                background-color: {bg_app} !important;
-            }}
+            .stApp {
+                background-color: #0B0F17;
+            }
 
-            section[data-testid="stSidebar"] {{
-                background-color: {bg_app} !important;
-                border-right: 1px solid #1F2937 !important;
-            }}
-
-            /* Asegurar que los textos principales sean siempre nítidos y claros */
-            h1, h2, h3, h4, [data-testid="stMarkdownContainer"] p {{
-                color: {text_primary} !important;
-            }}
-
-            /* Banner Alerta */
-            .critical-banner {{
-                background: {banner_bg} !important;
-                border: {banner_border} !important;
-                border-left: 5px solid #EF4444 !important;
-                color: {banner_text} !important;
+            /* Banner Alerta Crítica */
+            .critical-banner {
+                background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+                border-left: 4px solid #EF4444;
+                color: #FCA5A5;
                 padding: 14px 18px;
                 border-radius: 8px;
-                font-weight: 700;
+                font-weight: 600;
                 font-size: 0.92rem;
                 margin-bottom: 20px;
-            }}
+                border: 1px solid rgba(239, 68, 68, 0.25);
+            }
 
-            /* Tarjetas de KPIs */
-            .kpi-container {{
-                background: {bg_card} !important;
-                border: {border_card} !important;
+            /* Tarjetas KPIs */
+            .kpi-container {
+                background: #141C2E;
+                border: 1px solid #1E293B;
                 border-radius: 12px;
                 padding: 16px 18px;
                 box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.35);
-            }}
-            .kpi-title {{
-                color: {text_muted} !important;
+                transition: transform 0.15s ease, border-color 0.15s ease;
+            }
+            .kpi-container:hover {
+                border-color: #334155;
+            }
+            .kpi-title {
+                color: #94A3B8;
                 font-size: 0.72rem;
                 font-weight: 700;
                 letter-spacing: 0.07em;
                 text-transform: uppercase;
                 margin-bottom: 6px;
-            }}
-            .kpi-value {{
+            }
+            .kpi-value {
                 font-size: 1.85rem;
                 font-weight: 800;
                 line-height: 1.1;
                 margin-bottom: 4px;
-            }}
-            .kpi-subtext {{
+            }
+            .kpi-subtext {
                 font-size: 0.76rem;
-                color: {text_muted} !important;
-            }}
+                color: #64748B;
+            }
 
-            .kpi-val-total {{ color: {text_primary} !important; }}
-            .kpi-val-money {{ color: {val_money} !important; }}
-            .kpi-val-ok {{ color: {val_ok} !important; }}
-            .kpi-val-alert {{ color: {val_alert} !important; }}
+            .kpi-val-total { color: #F8FAFC; }
+            .kpi-val-money { color: #38BDF8; }
+            .kpi-val-ok { color: #10B981; }
+            .kpi-val-alert { color: #F97316; }
 
             /* Botones de acción */
-            div.stButton > button:first-child {{
-                background: linear-gradient(135deg, #F97316 0%, #EA580C 100%) !important;
-                color: #FFFFFF !important;
-                border: none !important;
-                border-radius: 8px !important;
-                font-weight: 700 !important;
-                padding: 0.55rem 1rem !important;
-                box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25) !important;
-            }}
-            div.stButton > button:first-child:hover {{
-                background: linear-gradient(135deg, #FB923C 0%, #F97316 100%) !important;
-                color: #FFFFFF !important;
-            }}
+            div.stButton > button:first-child {
+                background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                font-weight: 700;
+                padding: 0.55rem 1rem;
+                box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+                transition: all 0.2s ease;
+            }
+            div.stButton > button:first-child:hover {
+                background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+                color: #FFFFFF;
+            }
 
-            div[role="radiogroup"] {{
+            div[role="radiogroup"] {
                 gap: 16px;
-            }}
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -190,11 +161,9 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-
-    if "alto_contraste" not in st.session_state:
-        st.session_state["alto_contraste"] = False
-
+    
     init_db()
+    inyectar_estilos()
 
     ADMIN_PIN = st.secrets.get("ADMIN_PIN", "2817")
     if "es_admin" not in st.session_state:
@@ -215,22 +184,9 @@ def main():
         st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 0.85rem; margin-top: 2px;'>Sistema de Bodega y Distribución</p>", unsafe_allow_html=True)
         st.divider()
 
-        # Selector de Modo de Visualización (Solo las dos opciones que funcionan excelente)
-        st.markdown("### Visualización")
-        contraste_activo = st.checkbox(
-            "Modo Alto Contraste",
-            value=st.session_state["alto_contraste"],
-            help="Activa bordes reforzados y fondo negro puro para máxima legibilidad en bodega."
-        )
-        if contraste_activo != st.session_state["alto_contraste"]:
-            st.session_state["alto_contraste"] = contraste_activo
-            st.rerun()
-
-        st.divider()
-
         st.markdown("### Acceso Administrador")
         if not st.session_state["es_admin"]:
-            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10, key="admin_pin_input")
+            pin_input = st.text_input("PIN de seguridad:", type="password", max_chars=10)
             if st.button("Desbloquear Edición", use_container_width=True):
                 if pin_input == ADMIN_PIN:
                     st.session_state["es_admin"] = True
@@ -303,20 +259,9 @@ def main():
         else:
             st.info("**Modo Consulta**\n\nCatálogo en modo lectura. Ingresa el PIN arriba para registrar o modificar productos.")
 
-    inyectar_estilos(st.session_state["alto_contraste"])
-
     # --- CABECERA PRINCIPAL ---
-    if existe_logo:
-        col_hdr_logo, col_hdr_txt = st.columns([1, 8])
-        with col_hdr_logo:
-            st.image(LOGO_PATH, width=85)
-        with col_hdr_txt:
-            st.markdown("<h1 style='margin-bottom: 0px;'>Biofood Nutrition — Centro de Gestión de Stock</h1>", unsafe_allow_html=True)
-            st.caption("Monitoreo en Tiempo Real · Almacén Central")
-    else:
-        st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
-        st.caption("Monitoreo en Tiempo Real · Almacén Central")
-
+    st.markdown("# Biofood Nutrition — Centro de Gestión de Stock")
+    st.caption("Monitoreo en Tiempo Real · Almacén Central")
     st.write("")
 
     # 1. Alerta Crítica
